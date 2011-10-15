@@ -1,0 +1,10 @@
+Package: sva
+Title: Surrogate Variable Analysis
+Version: 2.99.0
+Author: Jeffrey T. Leek <jleek@jhsph.edu>, Andrew E. Jaffe <ajaffe@jhsph.edu>, John D. Storey <jstorey@princeton.edu>
+Description: These functions take a gene expression data set and a corresponding model matrix and estimate surrogate variables for use in further analyses. The surrogate variables are estimated using the methods proposed by Leek and Storey (2007,2008).  Surrogate variables can be included in significance analysis to adjust for possible dependence in expression across genes and correct error rate estimates. Surrogate variables were developed in the context of microarray experiments, but may be used as a general tool for high throughput data sets where dependence may be involved. 
+Maintainer: Jeffrey T. Leek <jleek@jhsph.edu>
+Depends: R (>= 2.8), corpcor, mgcv
+Suggests: limma,pamr,bladderbatch
+License: Artistic-2.0
+biocViews: Microarray, Statistics

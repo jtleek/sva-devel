@@ -1,0 +1,11 @@
+useDynLib(sva,"monotone")
+export(f.pvalue)
+export(irwsva.build)
+export(num.sv)
+export(sva)
+export(twostepsva.build)
+export(fsva)
+
+
+
+
