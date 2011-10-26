@@ -44,22 +44,28 @@
    studies by surrogate variable analysis. PLoS Genetics, 3: e161. 
    \url{http://www.biostat.jhsph.edu/~jleek/publications.html}
  
-  SVA Manual \url{http://www.biostat.jhsph.edu/~jleek/sva/manual.pdf}
+  sva Vignette \url{http://www.biostat.jhsph.edu/~jleek/sva/}
 }
 
 \author{Jeffrey T. Leek \email{jleek@jhsph.edu}, John Storey \email{jstorey@princeton.edu}}
-\seealso{\code{\link{sva}}, \code{\link{irwsva.build}},\code{\link{twostepsva.build}} }
+\seealso{\code{\link{sva}}, \code{\link{irwsva.build}}, \code{\link{twostepsva.build}} }
 \examples{
   \dontrun{
   
   ## Load data
-  data(svadat)
-  grp <- rep(c(0,1),each=10)
-  mod <- model.matrix(~1+grp)
+  library(bladderbatch)
+  data(bladderdata)
+  
+  ## Obtain phenotypic data
+  pheno = pData(bladderEset)
+  edata = exprs(bladderEset)
+  batch = pheno$batch
+  mod = model.matrix(~as.factor(cancer), data=pheno)
+  mod0 = model.matrix(~1, data=pheno)
 
   ## Calculate the number of surrogate variables 
-  xx <- num.sv(svadat,mod)
-  xx$n.sv
+  xx <- num.sv(edata,mod)
+  xx
  
  }
 }

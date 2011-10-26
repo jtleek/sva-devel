@@ -48,23 +48,28 @@ using the num.sv function}
    studies by surrogate variable analysis. PLoS Genetics, 3: e161. 
    \url{http://www.biostat.jhsph.edu/~jleek/publications.html}
  
-  SVA Manual \url{http://www.biostat.jhsph.edu/~jleek/sva/manual.pdf}
+  sva Vignette \url{http://www.biostat.jhsph.edu/~jleek/sva/}
 }
 
 \author{Jeffrey T. Leek \email{jleek@jhsph.edu}, John Storey \email{jstorey@princeton.edu}}
-\seealso{\code{\link{irwsva.build}},\code{\link{twostepsva.build}}, \code{\link{num.sv}}}
+\seealso{\code{\link{irwsva.build}}, \code{\link{twostepsva.build}}, \code{\link{num.sv}}, \code{\link{ComBat}}, \code{\link{fsva}}}
 \examples{
   \dontrun{
 
   ## Load data
-  data(svadat)
-  grp <- rep(c(0,1),each=10)
-  mod <- model.matrix(~1+grp)
-  mod0 <- cbind(rep(1,20))
-
+  library(bladderbatch)
+  data(bladderdata)
+  
+  ## Obtain phenotypic data
+  pheno = pData(bladderEset)
+  edata = exprs(bladderEset)
+  batch = pheno$batch
+  mod = model.matrix(~as.factor(cancer), data=pheno)
+  mod0 = model.matrix(~1, data=pheno)
+  
 
   ## Construct the surrogate variables 
-  svaobj <- sva(svadat,mod,mod0,method="irw")
+  svaobj <- sva(edata,mod,mod0,method="irw")
 
 
   ## Include them in a downstream analysis

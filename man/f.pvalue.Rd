@@ -30,13 +30,18 @@
 \examples{
   \dontrun{
   ## Load data
-  data(svadat)
-  grp <- rep(c(0,1),each=10)
-  mod <- model.matrix(~1+grp)
-  mod0 <- cbind(rep(1,20))
+  library(bladderbatch)
+  data(bladderdata)
+  
+  ## Obtain phenotypic data
+  pheno = pData(bladderEset)
+  edata = exprs(bladderEset)
+  batch = pheno$batch
+  mod = model.matrix(~as.factor(cancer), data=pheno)
+  mod0 = model.matrix(~1, data=pheno)
   
   #Calculate the p-values
-  p <- f.pvalue(dat,mod,mod0)
+  p <- f.pvalue(edat,mod,mod0)
   hist(p)
   
  }
