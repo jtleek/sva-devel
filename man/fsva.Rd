@@ -29,33 +29,47 @@ for prediction problems.
 }
 
 \references{
-  SVA Manual \url{http://www.biostat.jhsph.edu/~jleek/sva/manual.pdf}
+  sva Vignette \url{http://www.biostat.jhsph.edu/~jleek/sva}
 }
 
 \author{Jeffrey T. Leek \email{jleek@jhsph.edu}}
-\seealso{\code{\link{sva}},\code{\link{irwsva.build}},\code{\link{twostepsva.build}}, \code{\link{num.sv}}}
+\seealso{\code{\link{sva}}, \code{\link{irwsva.build}}, \code{\link{twostepsva.build}}, \code{\link{num.sv}}}
 \examples{
   \dontrun{
 
   ## Load data
-  data(svadat)
-  grp <- rep(c(0,1),each=10)
-  mod <- model.matrix(~1+grp)
-  mod0 <- cbind(rep(1,20))
-
-  ## Construct the surrogate variables 
-  svaobj <- sva(svadat,mod,mod0)
-
-  ## Create some "new samples"
-  newdat = svadat + matrix(rnorm(1000*20),nrow=1000)
+  library(bladderbatch)
+  library(pamr)
+  data(bladderdata)
   
-  ## Correct the "new samples"
-  data <- fsva(svadat,mod,sv,newdat)
+  ## Obtain phenotypic data
+  pheno = pData(bladderEset)
+  edata = exprs(bladderEset)
+  batch = pheno$batch
+  mod = model.matrix(~as.factor(cancer), data=pheno)
 
-  # Look at the new samples and corrected new samples
-  par(mfrow=c(1,2))
-  image(newdat)
-  image(data$new)
+  ## Build the training and test sets
+  set.seed(12354)
+  trainIndicator = sample(1:57,size=30,replace=F)
+  testIndicator = (1:57)[-trainIndicator]
+
+  trainData = edata[,trainIndicator]
+  testData = edata[,testIndicator]
+
+  trainPheno = pheno[trainIndicator,]
+  testPheno = pheno[testIndicator,]
+
+  # Fit the sva model to the training set
+  trainMod = model.matrix(~cancer,data=trainPheno)
+  trainMod0 = model.matrix(~1,data=trainPheno)
+  trainSv = sva(trainData,trainMod,trainMod0)  
+
+  #fsva correct and train
+  fsvaobj = fsva(trainData,trainMod,trainSv,testData)
+  mydataSv = list(x=fsvaobj$db,y=trainPheno$cancer)
+  mytrainSv = pamr.train(mydataSv)
+  table(pamr.predict(mytrainSv,fsvaobj$new,threshold=1),testPheno$cancer)
+
  }
 }
 \keyword{misc}

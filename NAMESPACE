@@ -5,6 +5,7 @@ export(num.sv)
 export(sva)
 export(twostepsva.build)
 export(fsva)
+export(ComBat)
 
 
 

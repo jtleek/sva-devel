@@ -22,11 +22,12 @@ options(width=65)
 \setlength{\parindent}{0pt}
 \setcounter{secnumdepth}{1} 
 \title{The SVA package for removing batch effects and other unwanted variation in high-throughput experiments}
-\author{Jeffrey Leek$^1$*,  Andrew Jaffe$^1$, John Storey$^2$ \\
-Johns Hopkins School of Public Health \\
-Princeton University\\
-email: \texttt{jleek@jhsph.edu}}
-\date{Modified: October 6, 2011  Compiled: \today}
+\author{Jeffrey Leek$^1$*, W. Evan Johnson$^2$, Andrew Jaffe$^1$, Hilary Parker$^1$, John Storey$^3$ \\
+$^1$Johns Hopkins Bloomberg School of Public Health \\
+$^2$Boston University\\
+$^3$Princeton University\\
+*email: \texttt{jleek@jhsph.edu}}
+\date{Modified: October 24, 2011  Compiled: \today}
 \maketitle
 
 \bibliographystyle{plain}
@@ -36,10 +37,19 @@ email: \texttt{jleek@jhsph.edu}}
 
 \section{Overview}
 
+The \Rpackage{sva} package contains functions for removing batch effects and other unwanted variation in high-throughput experiments. Specifically, the \Rpackage{sva} package contains functions for identifying and building surrogate variables for high-dimensional data sets. Surrogate variables are covariates constructed directly from high-dimensional data (like gene expression/RNA sequencing/methylation/brain imaging data) that can be used in subsequent analyses to adjust for unknown, unmodeled, or latent sources of noise. 
 
-The \Rpackage{sva} package contains functions for the identifying and building surrogate variables for high-dimensional data sets. Surrogate variables are covariates constructed directly from high-dimensional data (like gene expression/RNA sequencing/methylation/brain imaging data) that can be used in subsequent analyses to adjust for unknown, unmodeled, or latent sources of noise. One common source of noise in high-throughput experiments are batch effects.  Batch effects have been defined as: ``Sub-groups of measurements that have qualitatively different behaviour across conditions and are unrelated to the biological or scientific variables in a study. For example, batch effects may occur if a subset of experiments was run on Monday and another set on Tuesday, if two technicians were responsible for different subsets of the experiments, or if two different lots of reagents, chips or instruments were used.''\cite{leek:2010aa}. There are also a large number of environmental and biological variables that are often unmeasured and may have a large impact on measurements from high-throughput biological experiments. The use of surrogate variables in differential expression analysis has been shown to reduce dependence, stabilize error rate estimates, and improve reproducibility, see \cite{leek:storey:2007,leek:storey:2008} for more detailed information.
+The \Rpackage{sva} package can be used to remove artifacts in two ways: (1) identifying and estimating surrogate variables for unknown sources of variation in high-throughput experiments and (2) directly removing known batch effects using ComBat \cite{johnson:2007aa}. 
 
-This document provides a tutorial for using the \Rpackage{sva} package. The tutorial includes information on (1) how to estimate the number of latent sources of variation, (2) how to apply the\Rpackage{sva} package to estimate latent variables such as batch effects, (3) how to use surrogate variables to improve differential expression analysis on their own or with \Rpackage{limma}, and (4) how to apply ``frozen'' \Rfunction{sva} to improve prediction and clustering.   As with any R package, detailed information on functions, along with their arguments and values, can be obtained in the help files. For instance, to view the help file for the function \Rfunction{sva} within R, type \texttt{? sva}.  The analyses performed in this experiment are based on gene expression measurements from a bladder cancer study \cite{dyrskjot:2004aa}. The data can be loaded from the \Rpackage{bladderbatch} data package. The relevant packages for the Vignette can be loaded with the code:
+Leek et. al (2010) define batch effects as follows: 
+\begin{quote}
+Batch effects are sub-groups of measurements that have qualitatively different behaviour across conditions and are unrelated to the biological or scientific variables in a study. For example, batch effects may occur if a subset of experiments was run on Monday and another set on Tuesday, if two technicians were responsible for different subsets of the experiments, or if two different lots of reagents, chips or instruments were used.
+\end{quote}
+The \Rpackage{sva} package includes the popular ComBat \cite{johnson:2007aa} function for directly modeling batch effects when they are known. There are also potentially a large number of environmental and biological variables that are unmeasured and may have a large impact on measurements from high-throughput biological experiments. For these cases the \Rfunction{sva} function may be more appropriate for removing these artifacts. It is also possible to use the \Rfunction{sva} function with the \Rfunction{ComBat} function to remove both known batch effects and other potential latent sources of variation. Removing batch effects and using surrogate variables in differential expression analysis have been shown to reduce dependence, stabilize error rate estimates, and improve reproducibility (see \cite{leek:storey:2007,leek:storey:2008,leek:2010aa} for more detailed information).
+
+This document provides a tutorial for using the \Rpackage{sva} package. The tutorial includes information on (1) how to estimate the number of latent sources of variation, (2) how to apply the\Rpackage{sva} package to estimate latent variables such as batch effects, (3) how to directly remove known batch effects using the \Rfunction{ComBat} function, (4) how to perform differential expression analysis using surrogate variables either directly or with the\Rpackage{limma} package, and (4) how to apply ``frozen'' \Rfunction{sva} to improve prediction and clustering.  
+
+As with any R package, detailed information on functions, along with their arguments and values, can be obtained in the help files. For instance, to view the help file for the function \Rfunction{sva} within R, type \texttt{?sva}.  The analyses performed in this experiment are based on gene expression measurements from a bladder cancer study \cite{dyrskjot:2004aa}. The data can be loaded from the \Rpackage{bladderbatch} data package. The relevant packages for the Vignette can be loaded with the code:
 
 <<input>>=
 library(sva)
@@ -58,7 +68,7 @@ Two model matrices must be made: the ``full model'' and the ``null model''. The 
 
 \section{Setting up the data from an ExpressionSet}
 
-For the bladder cancer study, the variable of interest is cancer status and to begin we will assume no adjustment variables. The bladder data are stored in an expression set - a Bioconductor object used for storing gene expression data. The variables are stored in the phenotype data slot and can be obtained as follows: 
+For the bladder cancer study, the variable of interest is cancer status.  To begin we will assume no adjustment variables. The bladder data are stored in an expression set - a Bioconductor object used for storing gene expression data. The variables are stored in the phenotype data slot and can be obtained as follows: 
 <<input>>=
 pheno = pData(bladderEset)
 @
@@ -68,13 +78,13 @@ edata = exprs(bladderEset)
 @
 
 
-Next we create the full model matrix - including both the adjustment variables and the variable of interest (cancer status). Since cancer status has multiple levels, we treat it as a factor variable. 
+Next we create the full model matrix - including both the adjustment variables and the variable of interest (cancer status). In this case we only have the variable of interest. Since cancer status has multiple levels, we treat it as a factor variable. 
 
 <<input>>=
 mod = model.matrix(~as.factor(cancer), data=pheno)
 @
 
-The null model contains only the adjustment variables, since we are not adjusting for any other variables in this analysis, only an intercept is included in the model. 
+The null model contains only the adjustment variables. Since we are not adjusting for any other variables in this analysis, only an intercept is included in the model. 
 <<input>>=
 mod0 = model.matrix(~1,data=pheno)
 @
@@ -83,7 +93,7 @@ Now that the model matrices have been created, we can apply the \Rfunction{sva} 
 
 \section{Applying the \Rfunction{sva} function to estimate batch and other artifacts} 
 
-The \Rfunction{sva} performs two different steps. First it identifies the number of latent factors that need to be estimated. If the \Rfunction{sva} function is called without the \texttt{n.sv} argument specified, the number of factors will be estimated for you. The number of factors can also be estimated using the \Rfunction{num.sv}.
+The \Rfunction{sva} function performs two different steps. First it identifies the number of latent factors that need to be estimated. If the \Rfunction{sva} function is called without the \texttt{n.sv} argument specified, the number of factors will be estimated for you. The number of factors can also be estimated using the \Rfunction{num.sv}.
 
 <<input>>=
 n.sv = num.sv(edata,mod)
@@ -98,7 +108,6 @@ svobj = sva(edata,mod,mod0,n.sv=n.sv)
 
 The \Rfunction{sva} function returns a list with four components, \texttt{sv}, \texttt{pprob.gam}, \texttt{pprob.b}, \texttt{n.sv}. \texttt{sv} is a matrix whose columns correspond to the estimated surrogate variables. They can be used in downstream analyses as described below. \texttt{pprob.gam} is the posterior probability that each gene is associated with one or more latent variables \cite{leek:2008aa}.  \texttt{pprob.b} is the posterior probability that each gene is associated with the variables of interest \cite{leek:2008aa}.  \texttt{n.sv} is the number of surrogate variables estimated by the \Rfunction{sva}. 
 
-
 \section{Adjusting for surrogate variables using the \Rfunction{f.pvalue} function}
 
 The \Rfunction{f.pvalue} function can be used to calculate parametric F-test p-values for each row of a data matrix. In the case of the bladder study, this would correspond to calculating a parametric F-test p-value for each of the 22,283 rows of the matrix. The F-test compares the models \texttt{mod} and \texttt{mod0}. They must be nested models, so all of the variables in \texttt{mod0} must appear in \texttt{mod}. First we can calculate the F-test p-values for differential expression with respect to cancer status, without adjusting for surrogate variables, adjust them for multiple testing, and calculate the number that are significant with a Q-value less than 0.05. 
@@ -108,7 +117,7 @@ pValues = f.pvalue(edata,mod,mod0)
 qValues = p.adjust(pValues,method="BH")
 @
 
-Note that nearly 70\% of the genes are strongly differentially expressed at an FDR less than 5\% between groups. This number seems artificially high, even for a strong phenotype like cancer. Now we can perform the same analysis, but adjusting for surrogate variables. The first step is to include the surrogate variables in both the null and full models. The reason is that we want to adjust for the surrogate variables, so they are now adjustment variables and must be included in both models. Then P-values and Q-values can be computed as before. 
+Note that nearly 70\% of the genes are strongly differentially expressed at an FDR of less than 5\% between groups. This number seems artificially high, even for a strong phenotype like cancer. Now we can perform the same analysis, but adjusting for surrogate variables. The first step is to include the surrogate variables in both the null and full models. The reason is that we want to adjust for the surrogate variables, so we treat them as adjustment variables that must be included in both models. Then P-values and Q-values can be computed as before. 
 
 <<input>>=
 modSv = cbind(mod,svobj$sv)
@@ -143,21 +152,42 @@ topTableF(eb, adjust="BH")
 @
 
 
-\section{Variance filtering to speed computations when the number of features is large ($m >100,000$)}
+\section{Applying the \Rfunction{ComBat} function to adjust for known batches} 
 
-When the number of features is very large ($m > 100,000$) both the \Rfunction{num.sv} and \Rfunction{sva} functions may be slow, since multiple singular value decompositions of the entire data matrix must be computed. Both functions include a variance filtering term, \texttt{vfilter}, which may be used to speed up the calculation. \texttt{vfilter} must be an integer between 100 and the total number of features $m$. The features are ranked from most variable to least by standard deviation and computations will only be performed on the \texttt{vfilter} most variable features. This can improve computational time, but caution should be exercised, since the surrogate variables will only be estimated on a subset of the matrix. Running the functions with fewer than 1,000 features is not recommended. 
+The \Rfunction{ComBat} function adjusts for known batches using an empirical Bayesian framework \cite{johnson:2007aa}.  In order to use the function, you must have a known batch variable in your dataset.
 
 <<input>>=
-n.sv = num.sv(edata,mod,vfilter=2000)
-svobj = sva(edata,mod,mod0,n.sv=n.sv,vfilter=2000)
+batch = pheno$batch
 @
 
+Just as with \Rfunction{sva}, we then need to create a model matrix for the adjustment variables and the variable of interest (cancer status). Note that you do not include batch in creating this model matrix - it will be included later in \Rfunction{ComBat} function.
 
-\section{Batch correction when heterogeneity is expected or desirable}
+<<input>>=
+mod = model.matrix(~as.factor(cancer), data=pheno)
+@
 
-The goal of the \Rfunction{sva} is to remove all unwanted sources of variation while protecting the contrasts due to the primary variables included in \texttt{mod}. This leads to the identification of features that are consistently different between groups, removing all common sources of latent variation. In some cases, the latent variables may be important sources of biological variability. If the goal of the analysis is to identify heterogeneity in one or more subgroups, the \Rpackage{sva} package may not be appropriate. For example, suppose that it is expected that cancer samples represent two distinct, but unknown subgroups. If these subgroups have a large impact on expression, then one or more of the estimated surrogate variables may be very highly correlated with subgroup. 
+By default, all adjustment variables will be treated as factor variables by the \Rfunction{ComBat} function.  If you would like to include continuous adjustment variables, also create a vector containing the column numbers of the continuous covariates in the model matrix.  This vector must then be input into \Rfunction{ComBat} via the \texttt{numCovs} option.
 
-When researchers do not want to remove all latent variability, but do want to remove known artifacts such as batch effects, direct adjustment can be performed. In the bladder cancer example, one of the known variables is a batch variable. This variable can be included as an adjustment variable in both \texttt{mod} and \texttt{mod0}. Then the \Rfunction{f.pvalue} function can be used to detect differential expression. This approach is a simplified version of direct batch correction methods previously proposed for microarrays \cite{johnson:2007aa}.
+We now apply the \Rfunction{ComBat} function to the data, using parametric empirical Bayesian adjustments.
+
+<<input>>=
+combat_edata = ComBat(dat=edata, batch=batch, mod=mod, numCovs=NULL, par.prior=TRUE, prior.plots=FALSE)
+@
+
+This returns an expression matrix, with the same dimensions as your original dataset.  This new expression matrix has been adjusted for batch. Significance analysis can then be performed directly on the adjusted data using the model matrix and null model matrix as described before:
+
+<<input>>=
+pValuesComBat = f.pvalue(combat_edata,mod,mod0)
+qValuesComBat = p.adjust(pValuesComBat,method="BH")
+@
+
+These P-values and Q-values now account for the known batch effects included in the batch variable. 
+
+There are two additional options for the \Rfunction{ComBat} function.  By default, it performs parametric empirical Bayesian adjustments.  If you would like to use nonparametric empirical Bayesian adjustments, use the \texttt{par.prior=FALSE} option (this will take longer).  Additionally, use the \texttt{prior.plots=TRUE} option to give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric estimate.  For example, you might chose to use the parametric Bayesian adjustments for your data, but then can check the plots to ensure that the estimates were reasonable.
+
+\section{Removing known batch effects with a linear model}
+
+Direct adjustment for batch effects can also be performed using the \Rfunction{f.pvalue} function. In the bladder cancer example, one of the known variables is a batch variable. This variable can be included as an adjustment variable in both \texttt{mod} and \texttt{mod0}. Then the \Rfunction{f.pvalue} function can be used to detect differential expression. This approach is a simplified version of \Rfunction{ComBat}.
 
 <<input>>=
 modBatch = model.matrix(~as.factor(cancer) + as.factor(batch),data=pheno)
@@ -166,12 +196,29 @@ pValuesBatch = f.pvalue(edata,modBatch,mod0Batch)
 qValuesBatch = p.adjust(pValuesBatch,method="BH")
 @
 
-Caution should be exercised in using this approach. All sources of latent biological variation will remain in the data using this approach. In other words, if the samples were obtained in different environments, this effect will remain in the data. This may look like important heterogeneity, but lead to increased false positives. 
+\section{Surrogate variables versus direct adjustment}
+
+The goal of the \Rfunction{sva} is to remove all unwanted sources of variation while protecting the contrasts due to the primary variables included in \texttt{mod}. This leads to the identification of features that are consistently different between groups, removing all common sources of latent variation. 
+
+In some cases, the latent variables may be important sources of biological variability. If the goal of the analysis is to identify heterogeneity in one or more subgroups, the \Rfunction{sva} function may not be appropriate. For example, suppose that it is expected that cancer samples represent two distinct, but unknown subgroups. If these subgroups have a large impact on expression, then one or more of the estimated surrogate variables may be very highly correlated with subgroup. 
+
+In contrast, direct adjustment only removes the effect of known batch variables. All sources of latent biological variation will remain in the data using this approach. In other words, if the samples were obtained in different environments, this effect will remain in the data. If important sources of heterogeneity (from different environments, lab effects, etc.) are not accounted for, this may lead to increased false positives. 
+
+
+
+\section{Variance filtering to speed computations when the number of features is large ($m >100,000$)}
+
+When the number of features is very large ($m > 100,000$) both the \Rfunction{num.sv} and \Rfunction{sva} functions may be slow, since multiple singular value decompositions of the entire data matrix must be computed. Both functions include a variance filtering term, \texttt{vfilter}, which may be used to speed up the calculation. \texttt{vfilter} must be an integer between 100 and the total number of features $m$. The features are ranked from most variable to least variable by standard deviation. Computations will only be performed on the \texttt{vfilter} most variable features. This can improve computational time, but caution should be exercised, since the surrogate variables will only be estimated on a subset of the matrix. Running the functions with fewer than 1,000 features is not recommended. 
+
+<<input>>=
+n.sv = num.sv(edata,mod,vfilter=2000)
+svobj = sva(edata,mod,mod0,n.sv=n.sv,vfilter=2000)
+@
 
 
 \section{Applying the \Rfunction{fsva} function to remove batch effects for prediction}
 
-The surrogate variable analysis functions have been developed for population-level analyses such as differential expression analysis in microarrays. In some cases, the goal of an analysis is prediction. In this case, there is generally a training set and a test set. For each sample in the training set, the outcome/class for each sample is known, but latent sources of variability are unknown. For the samples in the test set, neither the outcome/class or the latent sources of variability are known. 
+The surrogate variable analysis functions have been developed for population-level analyses such as differential expression analysis in microarrays. In some cases, the goal of an analysis is prediction. In this case, data sets are generally composed a training set and a test set. For each sample in the training set, the outcome/class is known, but latent sources of variability are unknown. For the samples in the test set, neither the outcome/class or the latent sources of variability are known. 
 
 ``Frozen'' surrogate variable analysis can be used to remove latent variation in the test data set. To illustrate these functions, the bladder data can be separated into a training and test set. 
 
@@ -187,7 +234,7 @@ trainPheno = pheno[trainIndicator,]
 testPheno = pheno[testIndicator,]
 @
 
-Using these data sets, the \Rpackage{pamr} package can be used to train a predictive model on the training data and test that prediction on a test data set. 
+Using these data sets, the \Rpackage{pamr} package can be used to train a predictive model on the training data, as well as test that prediction on a test data set. 
 
 <<input>>=
 mydata = list(x=trainData,y=trainPheno$cancer)
