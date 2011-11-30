@@ -7,7 +7,7 @@
   algorithm of Leek and Storey (2007).
 }
 \usage{
-  sva(dat, mod, mod0 = NULL,n.sv=NULL,method=c("irw","two-step"),vfilter=NULL, B=5)
+  sva(dat, mod, mod0 = NULL,n.sv=NULL,method=c("irw","two-step"),vfilter=NULL, B=5, numSVmethod = "be")
 }
 \arguments{
   \item{dat}{A m genes by n arrays matrix of expression data}
@@ -21,6 +21,7 @@ using the num.sv function}
   surrogate variable estimation algorithms.}
   \item{vfilter}{The number of most variable genes to use when building SVs, must be between 100 and m}
   \item{B}{ The number of iterations of the algorithm to perform.}
+  \item{numSVmethod}{The method for determining the number of surrogate variables to use}
 }
 \details{
   Surrogate variable estimates are formed based on the algorithms
@@ -52,7 +53,7 @@ using the num.sv function}
 }
 
 \author{Jeffrey T. Leek \email{jleek@jhsph.edu}, John Storey \email{jstorey@princeton.edu}}
-\seealso{\code{\link{irwsva.build}}, \code{\link{twostepsva.build}}, \code{\link{num.sv}}, \code{\link{ComBat}}, \code{\link{fsva}}}
+\seealso{\code{\link{irwsva.build}},\code{\link{twostepsva.build}}, \code{\link{num.sv}},\code{\link{ComBat}},\code{\link{fsva}}}
 \examples{
   \dontrun{
 
