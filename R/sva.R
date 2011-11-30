@@ -1,4 +1,4 @@
-num.sv <- function(dat, mod,method=c("leek","be"),vfilter=NULL,B=20, sv.sig=0.10,seed=NULL) {
+num.sv <- function(dat, mod,method=c("be","leek"),vfilter=NULL,B=20, sv.sig=0.10,seed=NULL) {
 #Input
 #=============================================================================
 #dat: A m genes by n arrays matrix of expression data
@@ -51,7 +51,7 @@ num.sv <- function(dat, mod,method=c("leek","be"),vfilter=NULL,B=20, sv.sig=0.10
     }
     
     nsv <- sum(psv <= sv.sig)
-    return(list(n.sv = nsv))
+    return(as.numeric(list(n.sv = nsv)))
   }else{
     dat <- as.matrix(dat)
     dims <- dim(dat)
@@ -210,7 +210,7 @@ twostepsva.build <- function(dat, mod, n.sv){
 }
 
 
-sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,method=c("irw","two-step"),vfilter=NULL,B=5) {
+sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,method=c("irw","two-step"),vfilter=NULL,B=5, numSVmethod = "be") {
 #Input
 #=============================================================================
 #dat: A m genes by n arrays matrix of expression data
@@ -219,6 +219,7 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,method=c("irw","two-step"),vfilt
 #n.sv: The number of surrogate variables to build
 #vfilter: The number of most variable genes/probes to use in the analysis (must be > 100 and < m)
 #B: The number of iterations to perform
+#numSVmethod: The method for determining the number of SVs (see num.sv for more details)
 
   
 #Output
@@ -229,7 +230,7 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,method=c("irw","two-step"),vfilt
 #n.sv: The number of significant surrogate variables
 
   if(is.null(n.sv)){
-    n.sv = num.sv(dat,mod,method="leek",vfilter=vfilter)
+    n.sv = num.sv(dat,mod,method=numSVmethod,vfilter=vfilter)
   }
 
   if(!is.null(vfilter)){
@@ -431,10 +432,13 @@ fsva <- function(dbdat,mod,sv,newdat=NULL){
 ComBat <- function(dat, batch, mod, numCovs = NULL, par.prior=TRUE,prior.plots=FALSE) {
 
 	mod = cbind(mod,batch)
-	colnames(mod)[ncol(mod)] = "Batch"
-	# check for intercept
+	
+	# check for intercept, and drop if present
 	check = apply(mod, 2, function(x) all(x == 1))
-	mod = mod[,!check]
+	mod = as.matrix(mod[,!check])
+	
+	colnames(mod)[ncol(mod)] = "Batch"
+	
 	if(sum(check) > 0 & !is.null(numCovs)) numCovs = numCovs-1
 	
 	design <- design.mat(mod,numCov = numCovs)	
