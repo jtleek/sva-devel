@@ -6,7 +6,7 @@
   data set. 
 }
 \usage{
-  num.sv(dat, mod,method=c("leek","be"),vfilter=NULL, B=20, sv.sig=0.10,seed=NULL)
+  num.sv(dat, mod,method=c("be","leek"),vfilter=NULL, B=20, sv.sig=0.10,seed=NULL)
 }
 \arguments{
   \item{dat}{A m genes by n arrays matrix of expression data}

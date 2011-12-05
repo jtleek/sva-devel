@@ -96,7 +96,7 @@ Now that the model matrices have been created, we can apply the \Rfunction{sva} 
 The \Rfunction{sva} function performs two different steps. First it identifies the number of latent factors that need to be estimated. If the \Rfunction{sva} function is called without the \texttt{n.sv} argument specified, the number of factors will be estimated for you. The number of factors can also be estimated using the \Rfunction{num.sv}.
 
 <<input>>=
-n.sv = num.sv(edata,mod)
+n.sv = num.sv(edata,mod,method="leek")
 n.sv
 @
 
@@ -211,7 +211,7 @@ In contrast, direct adjustment only removes the effect of known batch variables.
 When the number of features is very large ($m > 100,000$) both the \Rfunction{num.sv} and \Rfunction{sva} functions may be slow, since multiple singular value decompositions of the entire data matrix must be computed. Both functions include a variance filtering term, \texttt{vfilter}, which may be used to speed up the calculation. \texttt{vfilter} must be an integer between 100 and the total number of features $m$. The features are ranked from most variable to least variable by standard deviation. Computations will only be performed on the \texttt{vfilter} most variable features. This can improve computational time, but caution should be exercised, since the surrogate variables will only be estimated on a subset of the matrix. Running the functions with fewer than 1,000 features is not recommended. 
 
 <<input>>=
-n.sv = num.sv(edata,mod,vfilter=2000)
+n.sv = num.sv(edata,mod,vfilter=2000,method="leek")
 svobj = sva(edata,mod,mod0,n.sv=n.sv,vfilter=2000)
 @
 
