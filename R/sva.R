@@ -360,7 +360,7 @@ edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
 	return(lfdr)
 }
 
-fsva <- function(dbdat,mod,sv,newdat=NULL){
+fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
 
 #Input
 #=============================================================================
@@ -368,48 +368,78 @@ fsva <- function(dbdat,mod,sv,newdat=NULL){
 #mod: The model matrix for the terms included in the analysis for the training data
 #sv: The surrogate variable object created by running sva on dbdat using mod. 
 #newdat (optional): A set of test samples to be adjusted using the training database
-
+#method: If method ="fast" then the SVD is calculated using an online approach, this may introduce slight bias. If method="exact" the exact SVD is calculated, but will be slower
   
 #Output
 #=============================================================================
 #db: An adjusted version of the training database where the effect of batch/expression heterogeneity has been removed
 #new: An adjusted version of the new samples, adjusted one at a time using the fsva methodology. 
+#newsv: Surrogate variables for the new samples
 
-  sv$sv = cbind(sv$sv)
+  method <- match.arg(method)
   ndb = dim(dbdat)[2]
   nnew = dim(newdat)[2]
   nmod = dim(mod)[2]
   ntot = ndb + nnew
-  mod0 = mod
-  
+  n.sv<-sv$n.sv
+
+  # Adjust the database
   mod = cbind(mod,sv$sv)
   gammahat = (dbdat %*% mod %*% solve(t(mod) %*% mod))[,(nmod+1):(nmod + sv$n.sv)]
   db = dbdat - gammahat %*% t(sv$sv)
-  mod = mod0
   adjusted=NA
-  cat(paste("Correcting sample (out of", nnew,"):"))
+
   if(!is.null(newdat)){
-    adjusted = newdat*0
-    for(i in 1:nnew){
-      tmp = cbind(dbdat,newdat[,i])
-      tmpd = (1-sv$pprob.b)*sv$pprob.gam*tmp
-      ss = fast.svd(t(scale(t(tmpd),scale=F)),tol=0)
-      mod = cbind(mod,sv$sv)
-      sgn = rep(NA,sv$n.sv)
+  # Calculate the new surrogate variables
+    if(method=="fast"){
+      wts <- (1-sv$pprob.b)*sv$pprob.gam
+      WX <- wts*dbdat
+      svd.wx = fast.svd(t(scale(t(WX),scale=F)),tol=0)
+      D <- svd.wx$d[1:n.sv]
+      U <- svd.wx$u[,1:n.sv]
+      P <- t(wts*t(1/D * t(U)))
+      newV <- P %*% newdat
+      sgn = rep(NA,n.sv)
       for(j in 1:sv$n.sv){
-        sgn[j] = sign(cor(ss$v[1:ndb,j],sv$sv[1:ndb,j]))
+        if(sv$n.sv>1){
+          sgn[j] = sign(cor(svd.wx$v[1:ndb,j],sv$sv[1:ndb,j]))
+        }
+        if(sv$n.sv==1){
+          sgn[j] = sign(cor(svd.wx$v[1:ndb,j],sv$sv[1:ndb]))
+        }
       }
-      gammahat2 = t(t(gammahat)*sgn)
+      newV = newV*sgn
+
       
-      adjusted[,i] = newdat[,i] - gammahat2 %*% ss$v[(ndb+1),1:sv$n.sv]
-      mod = mod0
-      cat(paste(i," "))
+    }else if(method=="exact"){
+      newV = matrix(nrow=nnew,ncol=n.sv)
+      for(i in 1:nnew){
+        tmp = cbind(dbdat,newdat[,i])
+        tmpd = (1-sv$pprob.b)*sv$pprob.gam*tmp
+        ss = fast.svd(t(scale(t(tmpd),scale=F)),tol=0)
+        sgn = rep(NA,sv$n.sv)
+        for(j in 1:sv$n.sv){
+          if(sv$n.sv>1){
+            sgn[j] = sign(cor(ss$v[1:ndb,j],sv$sv[1:ndb,j]))
+          }
+          if(sv$n.sv==1){
+            sgn[j] = sign(cor(ss$v[1:ndb,j],sv$sv[1:ndb]))
+          }
+        }
+        newV[i,]<-ss$v[(ndb+1),1:sv$n.sv]*sgn
+      }
+     newV = t(newV) 
     }
+
+    newV = t(newV)
+    newV = scale(newV)/sqrt(dim(newV)[1])
+    newV = t(newV)
+    adjusted = newdat - gammahat %*% newV
+    newV = t(newV)
   }
-  return(list(db=db,new=adjusted))
+
+  return(list(db=db,new=adjusted,newsv = newV))
 }
-
-
 
 
 
@@ -427,7 +457,7 @@ fsva <- function(dbdat,mod,sv,newdat=NULL){
 #	> prior.plots = plot the priors? also taken from the original function:
 #		if true will give prior plots with black as a kernal estimate 
 #		of the empirical batch effect density and red as the parametric estimate. 
-
+#        > numCovs = the column numbers of the variables in mod to be treated as continuous
 
 ComBat <- function(dat, batch, mod, numCovs = NULL, par.prior=TRUE,prior.plots=FALSE) {
 
@@ -563,25 +593,28 @@ design.mat <- function(mod, numCov){
 	tmp1 <- as.factor(mod[,tmp])
 	cat("Found",nlevels(tmp1),'batches\n')
 	design <- build.design(tmp1,start=1)
-	mod0 = as.matrix(mod[,-tmp])
 
 	if(!is.null(numCov)) {
-		theNumCov = as.matrix(mod0[,numCov])
-		mod0 = as.matrix(mod0[,-numCov])
-	}
+		theNumCov = as.matrix(mod[,numCov])
+		mod0 = as.matrix(mod[,-c(numCov,tmp)])
+	} else 	mod0 = as.matrix(mod[,-tmp])
+
 	ncov <- ncol(mod0)
 	
 	cat("Found",ncov,' categorical covariate(s)\n')
 	if(!is.null(numCov)) cat("Found",ncol(theNumCov),' continuous covariate(s)\n')
 	if(ncov>0){
 		for (j in 1:ncov){
-			tmp1 <- as.factor(as.matrix(mod[,-tmp])[,j])
+			tmp1 <- as.factor(as.matrix(mod0)[,j])
 			design <- build.design(tmp1,des=design)
 			}
 		}
 	if(!is.null(numCov)) design = cbind(design,theNumCov)
 	return(design)
+
 }
+
+
 
 # Makes a list with elements pointing to which array belongs to which batch
 list.batch <- function(mod){

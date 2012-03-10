@@ -39,7 +39,7 @@
 }
 
 \author{Jeffrey T. Leek \email{jleek@jhsph.edu}, John Storey \email{jstorey@princeton.edu}}
-\seealso{\code{\link{sva}}, \code{\link{num.sv}}, \code{\link{irwsva.build}}, \code{\link{ComBat}}}
+\seealso{\code{\link{sva}}, \code{\link{num.sv}},\code{\link{irwsva.build}},\code{\link{ComBat}}}
 \examples{
   \dontrun{
   ## Load data
