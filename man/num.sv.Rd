@@ -48,7 +48,7 @@
 }
 
 \author{Jeffrey T. Leek \email{jleek@jhsph.edu}, John Storey \email{jstorey@princeton.edu}}
-\seealso{\code{\link{sva}}, \code{\link{irwsva.build}}, \code{\link{twostepsva.build}} }
+\seealso{\code{\link{sva}}, \code{\link{irwsva.build}},\code{\link{twostepsva.build}} }
 \examples{
   \dontrun{
   
