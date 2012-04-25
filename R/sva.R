@@ -409,6 +409,9 @@ fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
         }
       }
       newV = newV*sgn
+      newV = t(newV)
+      newV = scale(newV)/sqrt(dim(newV)[1])
+      newV = t(newV)
 
       
     }else if(method=="exact"){
@@ -428,12 +431,9 @@ fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
         }
         newV[i,]<-ss$v[(ndb+1),1:sv$n.sv]*sgn
       }
-     newV = t(newV) 
+      newV = t(newV)
     }
 
-    newV = t(newV)
-    newV = scale(newV)/sqrt(dim(newV)[1])
-    newV = t(newV)
     adjusted = newdat - gammahat %*% newV
     newV = t(newV)
   }
