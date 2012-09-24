@@ -1,4 +1,12 @@
 useDynLib(sva,"monotone")
+
+importFrom(corpcor, fast.svd)
+
+importFrom(graphics, lines, par, plot, title)
+
+importFrom(stats, cor, density, dnorm, pf, predict, qnorm, qqline,
+           qqnorm, qqplot, rgamma, smooth.spline, var)
+
 export(f.pvalue)
 export(irwsva.build)
 export(num.sv)
