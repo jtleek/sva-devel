@@ -1,6 +1,6 @@
 Package: sva
 Title: Surrogate Variable Analysis
-Version: 3.10.0
+Version: 3.11.0
 Author: Jeffrey T. Leek <jleek@jhsph.edu>, W. Evan Johnson
         <wej@bu.edu>, Hilary S. Parker <hiparker@jhsph.edu>, Andrew E.
         Jaffe <ajaffe@jhsph.edu>, John D. Storey
