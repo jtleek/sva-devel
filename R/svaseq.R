@@ -1,9 +1,10 @@
-#' A function for estimating surrogate variables by estimating empirical control probes
+#' A function for estimating surrogate variables for count based RNA-seq data. 
 #' 
 #' This function is the implementation of the iteratively re-weighted least squares
 #' approach for estimating surrogate variables. As a by product, this function
-#' produces estimates of the probability of being an empirical control. See the function
-#' \code{\link{empirical.controls}} for a direct estimate of the empirical controls. 
+#' produces estimates of the probability of being an empirical control. This function first
+#' applies a moderated log transform as described in Leek 2014 before calculating the surrogate
+#' variables. See the function \code{\link{empirical.controls}} for a direct estimate of the empirical controls. 
 #' 
 #' @param dat The transformed data matrix with the variables in rows and samples in columns
 #' @param mod The model matrix being used to fit the data
@@ -23,12 +24,16 @@
 #' @export
 #' 
 
-sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","two-step","supervised"),
+svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","two-step","supervised"),
                 vfilter=NULL,B=5, numSVmethod = "be") {
   method <- match.arg(method)
   if(!is.null(controls) & !is.null(vfilter)){stop("sva error: if controls is provided vfilter must be NULL.\n")}
   if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.\n")}
   if(!is.null(controls) & (method!="supervised")){method = "supervised"; cat("sva warning: controls provided so supervised sva is being performed.\n")}
+  
+  if(any(dat < 0)){stop("empirical controls error: counts must be zero or greater")}
+  dat = log(dat + 1)
+  
   
   if(!is.null(vfilter)){
     if(vfilter < 100 | vfilter > dim(dat)[1]){
