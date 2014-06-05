@@ -31,7 +31,7 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
   if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.\n")}
   if(!is.null(controls) & (method!="supervised")){method = "supervised"; cat("sva warning: controls provided so supervised sva is being performed.\n")}
   
-  if(any(dat < 0)){stop("empirical controls error: counts must be zero or greater")}
+  if(any(dat < 0)){stop("svaseq error: counts must be zero or greater")}
   dat = log(dat + 1)
   
   
