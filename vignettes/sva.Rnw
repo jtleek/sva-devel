@@ -1,26 +1,18 @@
-% \VignetteIndexEntry{bladderbatchTutorial}
-% \VignetteKeywords{Gene expression data, batch effects}
-% \VignettePackage{bladderbatch}
+% \VignetteIndexEntry{sva tutorial}
+% \VignetteKeywords{Gene expression data, RNA-seq, batch effects}
+% \VignettePackage{sva}
 \documentclass[12pt]{article}
 <<echo=FALSE>>=
 options(width=65)
 @ 
+<<style-Sweave, eval=TRUE, echo=FALSE, results=tex>>=
+BiocStyle::latex()
+@
+
 \SweaveOpts{eps=FALSE,echo=TRUE}
-\usepackage{times}
-\usepackage{hyperref}
-\usepackage{fullpage}
 
-\newcommand{\Robject}[1]{{\texttt{#1}}}
-\newcommand{\Rfunction}[1]{{\texttt{#1}}}
-\newcommand{\Rpackage}[1]{{\texttt{#1}}}
-\newcommand{\Rclass}[1]{{\texttt{#1}}}
-\newcommand{\Rmethod}[1]{{\texttt{#1}}}
-\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
 
-\begin{document}
-\setlength{\parskip}{1\baselineskip}
-\setlength{\parindent}{0pt}
-\setcounter{secnumdepth}{1} 
+\begin{document} 
 \title{The SVA package for removing batch effects and other unwanted variation in high-throughput experiments}
 \author{Jeffrey Leek$^1$*, W. Evan Johnson$^2$, Andrew Jaffe$^1$, Hilary Parker$^1$, John Storey$^3$ \\
 $^1$Johns Hopkins Bloomberg School of Public Health \\
@@ -30,10 +22,7 @@ $^3$Princeton University\\
 \date{Modified: October 24, 2011  Compiled: \today}
 \maketitle
 
-\bibliographystyle{plain}
 \tableofcontents
-
-
 
 \section{Overview}
 
