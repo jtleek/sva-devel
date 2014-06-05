@@ -26,9 +26,9 @@
 sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","two-step","supervised"),
                 vfilter=NULL,B=5, numSVmethod = "be") {
   method <- match.arg(method)
-  if(!is.null(controls) & !is.null(vfilter)){stop("sva error: if controls is provided vfilter must be NULL.")}
-  if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.")}
-  if(!is.null(controls) & (method!="supervised")){cat("sva warning: controls provided so supervised sva is being performed.")}
+  if(!is.null(controls) & !is.null(vfilter)){stop("sva error: if controls is provided vfilter must be NULL.\n")}
+  if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.\n")}
+  if(!is.null(controls) & (method!="supervised")){method = "supervised"; cat("sva warning: controls provided so supervised sva is being performed.\n")}
   
   if(!is.null(vfilter)){
     if(vfilter < 100 | vfilter > dim(dat)[1]){
