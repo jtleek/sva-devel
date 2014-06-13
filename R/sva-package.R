@@ -16,9 +16,15 @@
 #' @references For Combat: Johnson WE, Li C, Rabinovic A (2007) Adjusting batch effects in microarray expression data using empirical Bayes methods. Biostatistics,  8 (1), 118-127
 #' @references For svaseq: Leek JT (2014) svaseq: removing batch and other artifacts from count-based sequencing data. bioRxiv doi: TBD
 #' @references For fsva: Parker HS, Bravo HC, Leek JT (2013) Removing batch effects for prediction problems with frozen surrogate variable analysis arXiv:1301.3947
+#' @references For psva: Parker HS, Leek JT, Favorov AV, Considine M, Xia X, Chavan S, Chung CH, Fertig EJ (2014) Preserving biological heterogeneity with a permuted surrogate variable analysis for genomics batch correction Bioinformatics doi: 10.1093/bioinformatics/btu375
 #' 
 #' @docType package
 #' @author Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey
 #' @name sva
+#' 
+#' @importFrom corpcor fast.svd
+#' @importFrom genefilter rowVars
+#' @import mgcv
+#' 
 #' @useDynLib sva monotone
 NULL
