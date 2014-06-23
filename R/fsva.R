@@ -39,7 +39,7 @@ fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
     if(method=="fast"){
       wts <- (1-sv$pprob.b)*sv$pprob.gam
       WX <- wts*dbdat
-      svd.wx = fast.svd(t(scale(t(WX),scale=F)),tol=0)
+      svd.wx = svd(t(scale(t(WX),scale=F)))
       D <- svd.wx$d[1:n.sv]
       U <- svd.wx$u[,1:n.sv]
       P <- t(wts*t(1/D * t(U)))
@@ -64,7 +64,7 @@ fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
       for(i in 1:nnew){
         tmp = cbind(dbdat,newdat[,i])
         tmpd = (1-sv$pprob.b)*sv$pprob.gam*tmp
-        ss = fast.svd(t(scale(t(tmpd),scale=F)),tol=0)
+        ss = svd(t(scale(t(tmpd),scale=F)))
         sgn = rep(NA,sv$n.sv)
         for(j in 1:sv$n.sv){
           if(sv$n.sv>1){

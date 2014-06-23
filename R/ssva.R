@@ -27,7 +27,7 @@ ssva <- function(dat,controls,n.sv){
   dats <- dat*controls
   allZero = rowMeans(dats==0) == 1
   dats = dats[!allZero,]
-  ss = fast.svd((dats - rowMeans(dats)),tol=0)
+  ss = svd((dats - rowMeans(dats)))
   sv = ss$v[,1:n.sv]
   return(list(sv=sv,pprob.gam = controls, pprob.b=NULL,n.sv=n.sv))
 }

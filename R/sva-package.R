@@ -22,7 +22,6 @@
 #' @author Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey
 #' @name sva
 #' 
-#' @importFrom corpcor fast.svd
 #' @importFrom genefilter rowVars
 #' @import mgcv
 #' 

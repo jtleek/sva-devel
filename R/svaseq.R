@@ -15,6 +15,7 @@
 #' @param vfilter You may choose to filter to the vfilter most variable rows before performing the analysis. vfilter must be NULL if method is "supervised"
 #' @param B The number of iterations of the irwsva algorithm to perform
 #' @param numSVmethod If n.sv is NULL, sva will attempt to estimate the number of needed surrogate variables. This should not be adapted by the user unless they are an expert. 
+#' @param constant The function takes log(dat + constant) before performing sva. By default constant = 1, all values of dat + constant should be positive. 
 #' 
 #' @return sv The estimated surrogate variables, one in each column
 #' @return pprob.gam: A vector of the posterior probabilities each gene is affected by heterogeneity
@@ -25,14 +26,14 @@
 #' 
 
 svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","two-step","supervised"),
-                vfilter=NULL,B=5, numSVmethod = "be") {
+                vfilter=NULL,B=5, numSVmethod = "be",constant = 1) {
   method <- match.arg(method)
   if(!is.null(controls) & !is.null(vfilter)){stop("sva error: if controls is provided vfilter must be NULL.\n")}
   if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.\n")}
   if(!is.null(controls) & (method!="supervised")){method = "supervised"; cat("sva warning: controls provided so supervised sva is being performed.\n")}
   
   if(any(dat < 0)){stop("svaseq error: counts must be zero or greater")}
-  dat = log(dat + 1)
+  dat = log(dat + constant)
   
   
   if(!is.null(vfilter)){

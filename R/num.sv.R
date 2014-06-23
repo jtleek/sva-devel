@@ -34,7 +34,7 @@ num.sv <- function(dat, mod,method=c("be","leek"),vfilter=NULL,B=20,seed=NULL) {
     m <- nrow(dat)
     H <- mod %*% solve(t(mod) %*% mod) %*% t(mod) 
     res <- dat - t(H %*% t(dat))
-    uu <- fast.svd(res,tol=0)
+    uu <- svd(res)
     ndf <- n - ceiling(sum(diag(H)))
     dstat <- uu$d[1:ndf]^2/sum(uu$d[1:ndf]^2)
     dstat0 <- matrix(0,nrow=B,ncol=ndf)
@@ -42,7 +42,7 @@ num.sv <- function(dat, mod,method=c("be","leek"),vfilter=NULL,B=20,seed=NULL) {
     for(i in 1:B){
       res0 <- t(apply(res, 1, sample, replace=FALSE))
       res0 <- res0 - t(H %*% t(res0))
-      uu0 <- fast.svd(res0,tol=0)
+      uu0 <- svd(res0)
       dstat0[i,] <- uu0$d[1:ndf]^2/sum(uu0$d[1:ndf]^2)
     }
     psv <- rep(1,n)
