@@ -5,7 +5,7 @@
 \usage{
 svaseq(dat, mod, mod0 = NULL, n.sv = NULL, controls = NULL,
   method = c("irw", "two-step", "supervised"), vfilter = NULL, B = 5,
-  numSVmethod = "be")
+  numSVmethod = "be", constant = 1)
 }
 \arguments{
 \item{dat}{The transformed data matrix with the variables in rows and samples in columns}
@@ -25,6 +25,8 @@ svaseq(dat, mod, mod0 = NULL, n.sv = NULL, controls = NULL,
 \item{B}{The number of iterations of the irwsva algorithm to perform}
 
 \item{numSVmethod}{If n.sv is NULL, sva will attempt to estimate the number of needed surrogate variables. This should not be adapted by the user unless they are an expert.}
+
+\item{constant}{The function takes log(dat + constant) before performing sva. By default constant = 1, all values of dat + constant should be positive.}
 }
 \value{
 sv The estimated surrogate variables, one in each column

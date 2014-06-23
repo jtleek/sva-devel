@@ -25,7 +25,7 @@ twostepsva.build <- function(dat, mod, n.sv){
   m <- nrow(dat)
   H <- mod %*% solve(t(mod) %*% mod) %*% t(mod) 
   res <- dat - t(H %*% t(dat))
-  uu <- fast.svd(res,tol=0)
+  uu <- svd(res)
   ndf <- n - ceiling(sum(diag(H)))
   dstat <-  uu$d[1:ndf]^2/sum(uu$d[1:ndf]^2)
   res.sv <- as.matrix(uu$v[,1:n.sv])
@@ -52,7 +52,7 @@ twostepsva.build <- function(dat, mod, n.sv){
     sv <- matrix(0,nrow=n,ncol=n.sv)
     dat <- t(scale(t(dat),scale=F))
     for(i in 1:n.sv) {
-      uu <- fast.svd(dat[use.var[,i],],tol=0)
+      uu <- svd(dat[use.var[,i],])
       maxcor <- 0
       for(j in 1:(n-1)) {
         if(abs(cor(uu$v[,j], res.sv[,i])) > maxcor) {
