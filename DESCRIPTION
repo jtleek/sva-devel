@@ -1,6 +1,6 @@
 Package: sva
 Title: Surrogate Variable Analysis
-Version: 3.11.2
+Version: 3.11.3
 Author: Jeffrey T. Leek <jtleek@gmail.com>, W. Evan Johnson <wej@bu.edu>,
     Hilary S. Parker <hiparker@jhsph.edu>, Elana J. Fertig <ejfertig@jhmi.edu>,
     Andrew E. Jaffe <ajaffe@jhsph.edu>, John D. Storey <jstorey@princeton.edu>
@@ -28,7 +28,6 @@ Maintainer: Jeffrey T. Leek <jtleek@gmail.com>, John D. Storey
     <jstorey@princeton.edu>
 Depends:
     R (>= 2.8),
-    corpcor,
     mgcv,
     genefilter
 Suggests:
