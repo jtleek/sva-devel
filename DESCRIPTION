@@ -34,7 +34,8 @@ Suggests:
     limma,
     pamr,
     bladderbatch,
-    BiocStyle
+    BiocStyle,
+    zebrafishRNASeq
 License: Artistic-2.0
 biocViews: Microarray, StatisticalMethod, Preprocessing,
     MultipleComparison, Sequencing, RNASeq, BatchEffect, Normalization
