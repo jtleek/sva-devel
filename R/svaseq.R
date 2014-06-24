@@ -46,7 +46,7 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
   }
   
   if(is.null(n.sv)){
-    n.sv = num.sv(dat,mod,method=numSVmethod,vfilter=vfilter)
+    n.sv = num.sv(dat=dat,mod=mod,method=numSVmethod,vfilter=vfilter)
   }
   
   if(n.sv > 0){
@@ -59,7 +59,7 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
       return(irwsva.build(dat=dat, mod=mod, mod0 = mod0,n.sv=n.sv,B=B))
     }
     if(method=="supervised"){
-      return(ssva(dat,controls,n.sv))
+      return(ssva(dat,controls,n.sv=n.sv))
     }
   }else{
     cat("No significant surrogate variables\n"); return(list(sv=0,pprob.gam=0,pprob.b=0,n.sv=0))
