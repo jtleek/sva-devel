@@ -199,7 +199,7 @@ In contrast, direct adjustment only removes the effect of known batch variables.
 
 When the number of features is very large ($m > 100,000$) both the \Rfunction{num.sv} and \Rfunction{sva} functions may be slow, since multiple singular value decompositions of the entire data matrix must be computed. Both functions include a variance filtering term, \texttt{vfilter}, which may be used to speed up the calculation. \texttt{vfilter} must be an integer between 100 and the total number of features $m$. The features are ranked from most variable to least variable by standard deviation. Computations will only be performed on the \texttt{vfilter} most variable features. This can improve computational time, but caution should be exercised, since the surrogate variables will only be estimated on a subset of the matrix. Running the functions with fewer than 1,000 features is not recommended. 
 
-<<input>>=
+<<input2>>=
 n.sv = num.sv(edata,mod,vfilter=2000,method="leek")
 svobj = sva(edata,mod,mod0,n.sv=n.sv,vfilter=2000)
 @
@@ -239,7 +239,7 @@ trainMod0 = model.matrix(~1,data=trainPheno)
 trainSv = sva(trainData,trainMod,trainMod0)
 @
 
-The \Rfunction{fsva} function can be used to adjust both the training data and the test data. The training data is adjusted using the calculated surrogate variables. The testing data is adjusted using the ``frozen'' surrogate variable algorithm (to be submitted). The output of the \Rfunction{fsva} function is an adjusted training set and an adjusted test set. These can be used to train and test a second, more accurate, prediction function. 
+The \Rfunction{fsva} function can be used to adjust both the training data and the test data. The training data is adjusted using the calculated surrogate variables. The testing data is adjusted using the ``frozen'' surrogate variable algorithm. The output of the \Rfunction{fsva} function is an adjusted training set and an adjusted test set. These can be used to train and test a second, more accurate, prediction function. 
 
 
 <<input>>=
@@ -249,6 +249,93 @@ mytrainSv = pamr.train(mydataSv)
 table(pamr.predict(mytrainSv,fsvaobj$new,threshold=1),testPheno$cancer)
 @
 
+\section{sva for sequencing (svaseq)}
+
+In our original work we used the identify function for data measured on an approximately symmetric and continuous scale. For sequencing data, which are often represented as counts, a more suitable model may involve the use of a moderated log function \cite{frazee2014differential,bullard2010evaluation}. For example in Step 1 of the algorithm we may first transform the gene expression measurements by applying the function $log(g_{ij} + c)$ for a small positive constant. In the analyses that follow we will set $c = 1$. 
+
+First we set up the data by filtering low count genes and identify potential control genes. The group variable in this case consists of two different treatments. 
+
+<<input>>=
+library(zebrafishRNASeq)
+library(genefilter)
+data(zfGenes)
+filter = apply(zfGenes, 1, function(x) length(x[x>5])>=2)
+filtered = zfGenes[filter,]
+genes = rownames(filtered)[grep("^ENS", rownames(filtered))]
+controls = grepl("^ERCC", rownames(filtered))
+group = as.factor(rep(c("Ctl", "Trt"), each=3))
+dat0 = as.matrix(filtered)
+@
+
+Now we can apply svaseq to estimate the latent factor. In this case, we set $n.sv=1$ because the number of samples is small ($n = 6$) but in general svaseq can be used to estimate the number of latent factors. 
+
+<<input3>>=
+## Set null and alternative models (ignore batch)
+mod1 = model.matrix(~group)
+mod0 = cbind(mod1[,1])
+
+svseq = svaseq(dat0,mod1,mod0,n.sv=1)$sv
+plot(svseq,pch=19,col="blue")
+@
+
+\section{Supervised sva}
+
+
+In our original work we introduced an algorithm for estimating the genes affected only by unknown artifacts empirically \cite{leek:2007aa, leek:2008aa}. Subsequently, Gagnon-Bartsch and colleagues \cite{gagnon2012using} used our surrogate variable model but made the important point that for some technologies or experiments control probes can be used to identify the set of genes only affected by artifacts. Supervised sva uses known control probes to estimate the surrogate variables. You can use supervised sva with the standard sva function. Here we show an example of how to perform supervised sva with the svaseq function. 
+
+<<input4>>=
+sup_svseq = svaseq(dat0,mod1,mod0,controls=controls,n.sv=1)$sv
+plot(sup_svseq, svseq,pch=19,col="blue")
+@
+
+Here we passed the controls argument, which is a vector of values between 0 and 1, representing the probability that a gene is affected by batch but not affected by the group variable. Since we have known negative control genes in this example, we simply set controls[i] = TRUE for all control genes and controls[i] = FALSE for all non-controls. 
+
+\section{What to cite}
+
+The sva package includes multiple different methods created by different faculty and students. It would really help them out if you would cite their work when you use this software. 
+
+To cite the overall sva package cite: 
+
+\begin{itemize}
+\item Leek JT, Johnson WE, Parker HS, Jaffe AE, and Storey JD. (2012) The sva package for removing batch effects and other unwanted variation in high-throughput experiments. Bioinformatics DOI:10.1093/bioinformatics/bts034
+\end{itemize}
+
+For sva please cite: 
+\begin{itemize}
+\item Leek JT and Storey JD. (2008) A general framework for multiple testing dependence. Proceedings of the National Academy of Sciences , 105: 18718-18723. 
+\item Leek JT and Storey JD. (2007) Capturing heterogeneity in gene expression studies by `Surrogate Variable Analysis'. PLoS Genetics, 3: e161.
+\end{itemize}
+
+For combat please cite: 
+
+\begin{itemize}
+\item Johnson WE, Li C, Rabinovic A (2007) Adjusting batch effects in microarray expression data using empirical Bayes methods. Biostatistics,  8 (1), 118-127
+\end{itemize}
+
+For svaseq please cite: 
+
+\begin{itemize}
+\item Leek JT (2014) svaseq: removing batch and other artifacts from count-based sequencing data. bioRxiv doi: TBD
+\end{itemize}
+
+For supervised sva please cite: 
+
+\begin{itemize}
+\item Leek JT (2014) svaseq: removing batch and other artifacts from count-based sequencing data. bioRxiv doi: TBD
+\item Gagnon-Bartsch JA, Speed TP (2012) Using control genes to correct for unwanted variation in microarray data. Biostatistics 13:539-52. 
+\end{itemize}
+
+For fsva please cite:
+
+\begin{itemize}
+\item Parker HS, Bravo HC, Leek JT (2013) Removing batch effects for prediction problems with frozen surrogate variable analysis arXiv:1301.3947
+\end{itemize}
+
+For psva please cite: 
+
+\begin{itemize}
+\item Parker HS, Leek JT, Favorov AV, Considine M, Xia X, Chavan S, Chung CH, Fertig EJ (2014) Preserving biological heterogeneity with a permuted surrogate variable analysis for genomics batch correction Bioinformatics doi: 10.1093/bioinformatics/btu375
+\end{itemize}
 
 \bibliography{sva} 
 
