@@ -149,10 +149,10 @@ The \Rfunction{ComBat} function adjusts for known batches using an empirical Bay
 batch = pheno$batch
 @
 
-Just as with \Rfunction{sva}, we then need to create a model matrix for the adjustment variables and the variable of interest (cancer status). Note that you do not include batch in creating this model matrix - it will be included later in \Rfunction{ComBat} function.
+Just as with \Rfunction{sva}, we then need to create a model matrix for the adjustment variables, but do not include the variable of interest. Note that you do not include batch in creating this model matrix - it will be included later in \Rfunction{ComBat} function. In this case there are no other adjustment variables so we simply fit an intercept term.
 
 <<input>>=
-mod = model.matrix(~as.factor(cancer), data=pheno)
+modcombat = model.matrix(~1, data=pheno)
 @
 
 By default, all adjustment variables will be treated as factor variables by the \Rfunction{ComBat} function.  If you would like to include continuous adjustment variables, also create a vector containing the column numbers of the continuous covariates in the model matrix.  This vector must then be input into \Rfunction{ComBat} via the \texttt{numCovs} option.
@@ -160,7 +160,7 @@ By default, all adjustment variables will be treated as factor variables by the 
 We now apply the \Rfunction{ComBat} function to the data, using parametric empirical Bayesian adjustments.
 
 <<input>>=
-combat_edata = ComBat(dat=edata, batch=batch, mod=mod, numCovs=NULL, par.prior=TRUE, prior.plots=FALSE)
+combat_edata = ComBat(dat=edata, batch=batch, mod=modcombat, numCovs=NULL, par.prior=TRUE, prior.plots=FALSE)
 @
 
 This returns an expression matrix, with the same dimensions as your original dataset.  This new expression matrix has been adjusted for batch. Significance analysis can then be performed directly on the adjusted data using the model matrix and null model matrix as described before:
