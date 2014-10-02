@@ -7,7 +7,7 @@
 #' \code{\link{empirical.controls}} for a direct estimate of the empirical controls. 
 #' 
 #' @param svaobj The transformed data matrix with the variables in rows and samples in columns
-#' @param dat
+#' @param dat The data set that was used to build the surrogate variables
 #' @param mod The model matrix being used to fit the data
 #' @param mod0 The null model matrix being used to fit the data
 #' 
