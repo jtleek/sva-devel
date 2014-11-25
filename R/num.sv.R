@@ -35,7 +35,7 @@ num.sv <- function(dat, mod,method=c("be","leek"),vfilter=NULL,B=20,seed=NULL) {
     H <- mod %*% solve(t(mod) %*% mod) %*% t(mod) 
     res <- dat - t(H %*% t(dat))
     uu <- svd(res)
-    ndf <- n - ceiling(sum(diag(H)))
+    ndf <- min(m,n) - ceiling(sum(diag(H)))
     dstat <- uu$d[1:ndf]^2/sum(uu$d[1:ndf]^2)
     dstat0 <- matrix(0,nrow=B,ncol=ndf)
     
