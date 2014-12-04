@@ -36,6 +36,15 @@ ComBat <- function(dat, batch, mod, numCovs = NULL, par.prior=TRUE,prior.plots=F
   n.batches <- sapply(batches, length)
   n.array <- sum(n.batches)
   
+  # Checking if the design is confounded
+  if(qr(design)$rank<ncol(design)){
+    if(ncol(design)<=(n.batch)){stop("your batch variables are redundant or nested! Please remove one or more of the batch variables so they are no longer confounded.")}
+    if(ncol(design)==(n.batch+1)){stop("your covariate is confounded with batch! Please remove the confounded covariate and rerun ComBat.")}
+    if(ncol(design)>(n.batch+1)){
+      if((qr(design[,-c(1:n.batch)])$rank<ncol(design[,-c(1:n.batch)]))){stop('the experimental design of your covariates is confounded! Please remove one (or more) of the covariates so that your design is no longer confounded.')
+      }else{stop("one (or more) of your covariates is confounded with batch! Please remove the confounded covariate and rerun ComBat.")}}
+  }
+    
   ## Check for missing values
   NAs = any(is.na(dat))
   if(NAs){cat(c('Found',sum(is.na(dat)),'Missing Data Values\n'),sep=' ')}
