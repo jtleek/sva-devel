@@ -149,18 +149,18 @@ The \Rfunction{ComBat} function adjusts for known batches using an empirical Bay
 batch = pheno$batch
 @
 
-Just as with \Rfunction{sva}, we then need to create a model matrix for the adjustment variables, but do not include the variable of interest. Note that you do not include batch in creating this model matrix - it will be included later in \Rfunction{ComBat} function. In this case there are no other adjustment variables so we simply fit an intercept term.
+Just as with \Rfunction{sva}, we then need to create a model matrix for the adjustment variables, including the variable of interest. Note that you do not include batch in creating this model matrix - it will be included later in the \Rfunction{ComBat} function. In this case there are no other adjustment variables so we simply fit an intercept term.
 
 <<input>>=
 modcombat = model.matrix(~1, data=pheno)
 @
 
-By default, all adjustment variables will be treated as factor variables by the \Rfunction{ComBat} function.  If you would like to include continuous adjustment variables, also create a vector containing the column numbers of the continuous covariates in the model matrix.  This vector must then be input into \Rfunction{ComBat} via the \texttt{numCovs} option.
+Note that adjustment variables will be treated as given to the \Rfunction{ComBat} function.  This means if you are trying to adjust for a categorical variable with p different levels, you will need to give \Rfunction{ComBat} p-1 indicator variables for this covariate. We recommend using the \Rfunction{model.matrix} function to set these up. For continuous adjustment variables, just give a vector in the containing the covariate values in a single column of the model matrix.
 
 We now apply the \Rfunction{ComBat} function to the data, using parametric empirical Bayesian adjustments.
 
 <<input>>=
-combat_edata = ComBat(dat=edata, batch=batch, mod=modcombat, numCovs=NULL, par.prior=TRUE, prior.plots=FALSE)
+combat_edata = ComBat(dat=edata, batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
 @
 
 This returns an expression matrix, with the same dimensions as your original dataset.  This new expression matrix has been adjusted for batch. Significance analysis can then be performed directly on the adjusted data using the model matrix and null model matrix as described before:

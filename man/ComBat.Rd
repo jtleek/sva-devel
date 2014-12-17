@@ -3,17 +3,15 @@
 \alias{ComBat}
 \title{Adjust for batch effects using an empirical Bayes framework}
 \usage{
-ComBat(dat, batch, mod, numCovs = NULL, par.prior = TRUE,
+ComBat(dat, batch, mod=NULL, par.prior = TRUE,
   prior.plots = FALSE)
 }
 \arguments{
 \item{dat}{Genomic measure matrix (dimensions probe x sample) - for example, expression matrix}
 
-\item{batch}{{Batch covariate (multiple batches allowed)}}
+\item{batch}{{Batch covariate (multiple batches are not allowed)}}
 
 \item{mod}{Model matrix for outcome of interest and other covariates besides batch}
-
-\item{numCovs}{The column numbers of the variables in mod to be treated as continuous variables (otherwise all covariates are treated as factors)}
 
 \item{par.prior}{(Optional) TRUE indicates parametric adjustments will be used, FALSE indicates non-parametric adjustments will be used}
 
