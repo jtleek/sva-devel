@@ -35,7 +35,7 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
       stop(paste("sva error: the number of genes used in the analysis must be between 100 and",dim(dat)[1],"\n"))
     }
     tmpv = rowVars(dat)
-    ind = which(rank(-tmpv) < vfilter)
+    ind = which(rank(-tmpv) <= vfilter)
     dat = dat[ind,]
   }
   
