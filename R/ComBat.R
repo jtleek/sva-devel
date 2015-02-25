@@ -6,9 +6,8 @@
 #' data are assumed to be cleaned and normalized before batch effect removal. 
 #' 
 #' @param dat Genomic measure matrix (dimensions probe x sample) - for example, expression matrix
-#' @param batch {Batch covariate (multiple batches allowed)}
+#' @param batch {Batch covariate (only one batch allowed)}
 #' @param mod Model matrix for outcome of interest and other covariates besides batch
-#' @param numCovs The column numbers of the variables in mod to be treated as continuous variables (otherwise all covariates are treated as factors)
 #' @param par.prior (Optional) TRUE indicates parametric adjustments will be used, FALSE indicates non-parametric adjustments will be used
 #' @param prior.plots (Optional)TRUE give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric
 #'
@@ -17,26 +16,31 @@
 #' @export
 #' 
 
-ComBat <- function(dat, batch, mod, numCovs = NULL, par.prior=TRUE,prior.plots=FALSE) {
+ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE) {
   
-  mod = cbind(mod,batch)
+  # make batch a factor and make a set of indicators for batch
+  batch <- as.factor(batch)
+  batchmod <- model.matrix(~-1+batch)  
+  cat("Found",nlevels(batch),'batches\n')
   
-  # check for intercept, and drop if present
-  check = apply(mod, 2, function(x) all(x == 1))
-  mod = as.matrix(mod[,!check])
-  
-  colnames(mod)[ncol(mod)] = "Batch"
-  
-  if(sum(check) > 0 & !is.null(numCovs)) numCovs = numCovs-1
-  
-  design <- design.mat(mod,numCov = numCovs)	
-  
-  batches <- list.batch(mod)
-  n.batch <- length(batches)
+  # A few other characteristics on the batches
+  n.batch <- nlevels(batch)
+  batches <- list()
+  for (i in 1:n.batch){batches[[i]] <- which(batch == levels(batch)[i])} # list of samples in each batch  
   n.batches <- sapply(batches, length)
   n.array <- sum(n.batches)
   
-  # Checking if the design is confounded
+  #combine batch variable and covariates
+  design <- cbind(batchmod,mod)
+
+  # check for intercept in covariates, and drop if present
+  check <- apply(design, 2, function(x) all(x == 1))
+  design <- as.matrix(design[,!check])
+  
+  # Number of covariates or covariate levels
+  cat("Adjusting for",ncol(design)-ncol(batchmod),'covariate(s) or covariate level(s)\n')
+  
+  # Check if the design is confounded
   if(qr(design)$rank<ncol(design)){
     if(ncol(design)<=(n.batch)){stop("your batch variables are redundant or nested! Please remove one or more of the batch variables so they are no longer confounded.")}
     if(ncol(design)==(n.batch+1)){stop("your covariate is confounded with batch! Please remove the confounded covariate and rerun ComBat.")}
