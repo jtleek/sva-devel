@@ -17,8 +17,8 @@
 #' 
 
 ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE) {
-  
   # make batch a factor and make a set of indicators for batch
+  if(length(dim(batch))>1){stop("This version of ComBat only allows one batch variable")}  ## to be updated soon!
   batch <- as.factor(batch)
   batchmod <- model.matrix(~-1+batch)  
   cat("Found",nlevels(batch),'batches\n')
@@ -42,11 +42,11 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE) {
   
   # Check if the design is confounded
   if(qr(design)$rank<ncol(design)){
-    if(ncol(design)<=(n.batch)){stop("your batch variables are redundant or nested! Please remove one or more of the batch variables so they are no longer confounded.")}
-    if(ncol(design)==(n.batch+1)){stop("your covariate is confounded with batch! Please remove the confounded covariate and rerun ComBat.")}
+    #if(ncol(design)<=(n.batch)){stop("Batch variables are redundant! Remove one or more of the batch variables so they are no longer confounded")}
+    if(ncol(design)==(n.batch+1)){stop("The covariate is confounded with batch! Remove the covariate and rerun ComBat")}
     if(ncol(design)>(n.batch+1)){
-      if((qr(design[,-c(1:n.batch)])$rank<ncol(design[,-c(1:n.batch)]))){stop('the experimental design of your covariates is confounded! Please remove one (or more) of the covariates so that your design is no longer confounded.')
-      }else{stop("one (or more) of your covariates is confounded with batch! Please remove the confounded covariate and rerun ComBat.")}}
+      if((qr(design[,-c(1:n.batch)])$rank<ncol(design[,-c(1:n.batch)]))){stop('The covariates are confounded! Please remove one or more of the covariates so the design is not confounded')
+      }else{stop("At least one covariate is confounded with batch! Please remove confounded covariates and rerun ComBat")}}
   }
     
   ## Check for missing values
