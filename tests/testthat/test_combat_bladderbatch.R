@@ -40,4 +40,8 @@ test_that("check ComBat output with several different parameters on bladder canc
   pValuesComBat = f.pvalue(combat_edata,mod,mod0)
   expect_equal(sum(pValuesComBat<.05),18507)
   
+  #run ComBat with covariates, mean.only=TRUE:
+  combat_edata = ComBat(dat=edata, batch=batch, mod=mod, par.prior=TRUE, prior.plots=FALSE, mean.only=TRUE)
+  pValuesComBat = f.pvalue(combat_edata,mod,mod0)
+  expect_equal(sum(pValuesComBat<.05),17115)
 })
