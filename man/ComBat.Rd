@@ -16,6 +16,9 @@ ComBat(dat, batch, mod=NULL, par.prior = TRUE,
 \item{par.prior}{(Optional) TRUE indicates parametric adjustments will be used, FALSE indicates non-parametric adjustments will be used}
 
 \item{prior.plots}{(Optional)TRUE give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric}
+
+\item{mean.only}{(Optional)FALSE If TRUE ComBat only corrects the mean of the batch effect (no scale adjustment)}
+
 }
 \value{
 data A probe x sample genomic measure matrix, adjusted for batch effects.
