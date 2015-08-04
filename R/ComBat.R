@@ -9,15 +9,17 @@
 #' @param batch {Batch covariate (only one batch allowed)}
 #' @param mod Model matrix for outcome of interest and other covariates besides batch
 #' @param par.prior (Optional) TRUE indicates parametric adjustments will be used, FALSE indicates non-parametric adjustments will be used
-#' @param prior.plots (Optional)TRUE give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric
+#' @param prior.plots (Optional) TRUE give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric
+#' @param mean.only (Optional) FALSE If TRUE ComBat only corrects the mean of the batch effect (no scale adjustment)
 #'
 #' @return data A probe x sample genomic measure matrix, adjusted for batch effects.
 #' 
 #' @export
 #' 
 
-ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE) {
+ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.only=FALSE) {
   # make batch a factor and make a set of indicators for batch
+  if(mean.only==TRUE){cat("Using the 'mean only' version of ComBat\n")}
   if(length(dim(batch))>1){stop("This version of ComBat only allows one batch variable")}  ## to be updated soon!
   batch <- as.factor(batch)
   batchmod <- model.matrix(~-1+batch)  
@@ -28,6 +30,7 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE) {
   batches <- list()
   for (i in 1:n.batch){batches[[i]] <- which(batch == levels(batch)[i])} # list of samples in each batch  
   n.batches <- sapply(batches, length)
+  if(any(n.batches==1)){mean.only=TRUE; cat("Note: one batch has only one sample, setting mean.only=TRUE\n")}
   n.array <- sum(n.batches)
   
   #combine batch variable and covariates
@@ -74,7 +77,9 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE) {
   }
   delta.hat <- NULL
   for (i in batches){
+    if(mean.only==TRUE){delta.hat <- rbind(delta.hat,rep(1,nrow(s.data)))}else{
     delta.hat <- rbind(delta.hat,apply(s.data[,i], 1, var,na.rm=T))
+  }
   }
   
   ##Find Priors
@@ -111,14 +116,18 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE) {
   if(par.prior){
     cat("Finding parametric adjustments\n")
     for (i in 1:n.batch){
-      temp <- it.sol(s.data[,batches[[i]]],gamma.hat[i,],
-                     delta.hat[i,],gamma.bar[i],t2[i],a.prior[i],b.prior[i])
-      gamma.star <- rbind(gamma.star,temp[1,])
-      delta.star <- rbind(delta.star,temp[2,])
+      if(mean.only){
+        gamma.star <- rbind(gamma.star,postmean(gamma.hat[i,],gamma.bar[i],1,1,t2[i]))
+        delta.star <- rbind(delta.star,rep(1,nrow(s.data)))
+        }else{temp <- it.sol(s.data[,batches[[i]]],gamma.hat[i,],delta.hat[i,],gamma.bar[i],t2[i],a.prior[i],b.prior[i])
+        gamma.star <- rbind(gamma.star,temp[1,])
+        delta.star <- rbind(delta.star,temp[2,])
+        }
     }
   }else{
     cat("Finding nonparametric adjustments\n")
     for (i in 1:n.batch){
+      if(mean.only){delta.hat[i,]=1}
       temp <- int.eprior(as.matrix(s.data[,batches[[i]]]),gamma.hat[i,],delta.hat[i,])
       gamma.star <- rbind(gamma.star,temp[1,])
       delta.star <- rbind(delta.star,temp[2,])

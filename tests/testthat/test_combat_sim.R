@@ -49,6 +49,22 @@ test_that("check ComBat output with several different parameters on simulated ge
  gene1_batch_treat_mis <- c(7.0249052, 1.4302766, 3.0979753, NA, 6.1706164, 0.7848869, NA, 5.9650280, 6.2100799, 8.2542787, 2.8907924, 1.3319739, 0.9841704, 5.8422657, 1.8305576)
  expect_equal(as.numeric(batch_treat_mis[1,]),gene1_batch_treat_mis)
  
+ # mean only ComBat
+ batch_treat_mean_only <- ComBat(y,batch,treat,mean.only=TRUE)
+ gene1_batch_treat_mean_only <- c(7.2030495, 1.6138619, 3.2698945, 7.2125245, 6.3547367, 0.5918231, 5.2032061, 5.8370527, 6.1260060, 8.5364265, 2.7343902, 1.1717875, 0.8231397, 5.6813352, 1.6715816)
+ expect_equal(as.numeric(batch_treat_mean_only[1,]),gene1_batch_treat_mean_only)
+
+ # mean only ComBat non parametric
+ batch_treat_mean_only_non <- ComBat(y,batch,treat,par.prior=FALSE, mean.only=TRUE)
+ gene1_batch_treat_mean_only_non <- c(6.9822181, 1.3930305, 3.0490631, 6.9916932, 6.1339053, 0.7107136, 5.3220966, 5.9559432, 6.2448965, 8.6553171, 2.8420714, 1.2794687, 0.9308209, 5.7890163, 1.7792628)
+ expect_equal(as.numeric(batch_treat_mean_only_non[1,]),gene1_batch_treat_mean_only_non)
+
+ # detect a single sample in a batch--automatically use mean only ComBat
+ y_sub <- y[,-c(2:5)]; treat_sub <- treat[-c(2:5)]; batch_sub <- batch[-c(2:5)]
+ batch_treat_mean_only <- ComBat(y_sub,batch_sub,treat_sub,mean.only=FALSE)
+ gene1_batch_treat_mean_only <- c(7.141462, 1.001405, 5.612788, 6.246634, 6.535587, 8.946008, 2.961106, 1.398503, 1.049856, 5.908051, 1.898298)
+ expect_equal(round(as.numeric(batch_treat_mean_only[1,]),6),gene1_batch_treat_mean_only)
+ 
 })
 
  
