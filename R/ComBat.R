@@ -11,18 +11,25 @@
 #' @param par.prior (Optional) TRUE indicates parametric adjustments will be used, FALSE indicates non-parametric adjustments will be used
 #' @param prior.plots (Optional) TRUE give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric
 #' @param mean.only (Optional) FALSE If TRUE ComBat only corrects the mean of the batch effect (no scale adjustment)
+#' @param ref.batch (Optional) NULL if given, will use the selected batch as a reference for batch adjustment. The reference will not change and other batches will be adjusted to the reference
 #'
 #' @return data A probe x sample genomic measure matrix, adjusted for batch effects.
 #' 
 #' @export
 #' 
 
-ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.only=FALSE) {
+ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.only=FALSE,ref.batch=NULL) {
   # make batch a factor and make a set of indicators for batch
   if(mean.only==TRUE){cat("Using the 'mean only' version of ComBat\n")}
   if(length(dim(batch))>1){stop("This version of ComBat only allows one batch variable")}  ## to be updated soon!
   batch <- as.factor(batch)
   batchmod <- model.matrix(~-1+batch)  
+  if (!is.null(ref.batch)){ # check for reference batch, check value, and make appropriate changes
+    if (!(ref.batch%in%levels(batch))){stop("reference level ('ref.batch') is not one of the levels of the 'batch' variable")}
+    cat("Using batch =",ref.batch, "as a reference batch (this batch won't change)\n")
+    ref = which(levels(as.factor(batch))==ref.batch) # find the reference
+    batchmod[,ref]=1
+  }else{ref=NULL}
   cat("Found",nlevels(batch),'batches\n')
   
   # A few other characteristics on the batches
@@ -38,6 +45,7 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
 
   # check for intercept in covariates, and drop if present
   check <- apply(design, 2, function(x) all(x == 1))
+  if(!is.null(ref)){check[ref]=FALSE} ## except don't throw away the reference batch indicator
   design <- as.matrix(design[,!check])
   
   # Number of covariates or covariate levels
@@ -59,8 +67,8 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
   ##Standardize Data across genes
   cat('Standardizing Data across genes\n')
   if (!NAs){B.hat <- solve(t(design)%*%design)%*%t(design)%*%t(as.matrix(dat))}else{B.hat=apply(dat,1,Beta.NA,design)} #Standarization Model
-  grand.mean <- t(n.batches/n.array)%*%B.hat[1:n.batch,]
-  if (!NAs){var.pooled <- ((dat-t(design%*%B.hat))^2)%*%rep(1/n.array,n.array)}else{var.pooled <- apply(dat-t(design%*%B.hat),1,var,na.rm=T)}
+  grand.mean <- t(n.batches/n.array)%*%B.hat[1:n.batch,]  ### Need to change this to the reference batch mean....
+  if (!NAs){var.pooled <- ((dat-t(design%*%B.hat))^2)%*%rep(1/n.array,n.array)}else{var.pooled <- apply(dat-t(design%*%B.hat),1,var,na.rm=T)} ### Need to change this to the reference batch variance....
   
   stand.mean <- t(grand.mean)%*%t(rep(1,n.array))
   if(!is.null(design)){tmp <- design;tmp[,c(1:n.batch)] <- 0;stand.mean <- stand.mean+t(tmp%*%B.hat)}	
@@ -134,6 +142,10 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
     }
   }
   
+  if(!is.null(ref.batch)){
+    gamma.star[ref,]=0  ## set reference batch mean equal to 0
+    delta.star[ref,]=1  ## set reference batch variance equal to 1
+  }
   
   ### Normalize the Data ###
   cat("Adjusting the Data\n")
