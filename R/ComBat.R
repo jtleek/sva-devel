@@ -25,7 +25,7 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
   batch <- as.factor(batch)
   batchmod <- model.matrix(~-1+batch)  
   if (!is.null(ref.batch)){ # check for reference batch, check value, and make appropriate changes
-    if (!(ref.batch%in%levels(batch))){stop("reference level ('ref.batch') is not one of the levels of the 'batch' variable")}
+    if (!(ref.batch%in%levels(batch))){stop("reference level ref.batch is not one of the levels of the batch variable")}
     cat("Using batch =",ref.batch, "as a reference batch (this batch won't change)\n")
     ref = which(levels(as.factor(batch))==ref.batch) # find the reference
     batchmod[,ref]=1
@@ -42,7 +42,7 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
   
   #combine batch variable and covariates
   design <- cbind(batchmod,mod)
-
+  
   # check for intercept in covariates, and drop if present
   check <- apply(design, 2, function(x) all(x == 1))
   if(!is.null(ref)){check[ref]=FALSE} ## except don't throw away the reference batch indicator
@@ -59,19 +59,46 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
       if((qr(design[,-c(1:n.batch)])$rank<ncol(design[,-c(1:n.batch)]))){stop('The covariates are confounded! Please remove one or more of the covariates so the design is not confounded')
       }else{stop("At least one covariate is confounded with batch! Please remove confounded covariates and rerun ComBat")}}
   }
-    
+  
   ## Check for missing values
   NAs = any(is.na(dat))
   if(NAs){cat(c('Found',sum(is.na(dat)),'Missing Data Values\n'),sep=' ')}
   #print(dat[1:2,])
+  
   ##Standardize Data across genes
   cat('Standardizing Data across genes\n')
-  if (!NAs){B.hat <- solve(t(design)%*%design)%*%t(design)%*%t(as.matrix(dat))}else{B.hat=apply(dat,1,Beta.NA,design)} #Standarization Model
-  grand.mean <- t(n.batches/n.array)%*%B.hat[1:n.batch,]  ### Need to change this to the reference batch mean....
-  if (!NAs){var.pooled <- ((dat-t(design%*%B.hat))^2)%*%rep(1/n.array,n.array)}else{var.pooled <- apply(dat-t(design%*%B.hat),1,var,na.rm=T)} ### Need to change this to the reference batch variance....
+  if (!NAs){
+    B.hat <- solve(t(design)%*%design)%*%t(design)%*%t(as.matrix(dat))
+  }else{
+    B.hat=apply(dat,1,Beta.NA,design)
+  }
+  
+  ######## change grand.mean for ref batch
+  if(!is.null(ref.batch)){
+    grand.mean <- t(B.hat[ref, ])
+  }else{
+    grand.mean <- t(n.batches/n.array)%*%B.hat[1:n.batch,]
+  }
+  
+  ######## change var.pooled for ref batch
+  if (!NAs){
+    if(!is.null(ref.batch)){
+      ref.dat <- dat[, batches[[ref]]]
+      var.pooled <- ((ref.dat-t(design[batches[[ref]], ]%*%B.hat))^2)%*%rep(1/n.batches[ref],n.batches[ref])
+    }else{
+      var.pooled <- ((dat-t(design%*%B.hat))^2)%*%rep(1/n.array,n.array)
+    }
+  }else{
+    if(!is.null(ref.batch)){
+      ref.dat <- dat[, batches[[ref]]]
+      var.pooled <- apply(ref.dat-t(design[batches[[ref]], ]%*%B.hat),1,var,na.rm=T)
+    }else{
+      var.pooled <- apply(dat-t(design%*%B.hat),1,var,na.rm=T)
+    }
+  }
   
   stand.mean <- t(grand.mean)%*%t(rep(1,n.array))
-  if(!is.null(design)){tmp <- design;tmp[,c(1:n.batch)] <- 0;stand.mean <- stand.mean+t(tmp%*%B.hat)}	
+  if(!is.null(design)){tmp <- design;tmp[,c(1:n.batch)] <- 0;stand.mean <- stand.mean+t(tmp%*%B.hat)}  
   s.data <- (dat-stand.mean)/(sqrt(var.pooled)%*%t(rep(1,n.array)))
   
   ##Get regression batch effect parameters
@@ -86,8 +113,8 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
   delta.hat <- NULL
   for (i in batches){
     if(mean.only==TRUE){delta.hat <- rbind(delta.hat,rep(1,nrow(s.data)))}else{
-    delta.hat <- rbind(delta.hat,apply(s.data[,i], 1, var,na.rm=T))
-  }
+      delta.hat <- rbind(delta.hat,apply(s.data[,i], 1, var,na.rm=T))
+    }
   }
   
   ##Find Priors
@@ -127,10 +154,10 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
       if(mean.only){
         gamma.star <- rbind(gamma.star,postmean(gamma.hat[i,],gamma.bar[i],1,1,t2[i]))
         delta.star <- rbind(delta.star,rep(1,nrow(s.data)))
-        }else{temp <- it.sol(s.data[,batches[[i]]],gamma.hat[i,],delta.hat[i,],gamma.bar[i],t2[i],a.prior[i],b.prior[i])
-        gamma.star <- rbind(gamma.star,temp[1,])
-        delta.star <- rbind(delta.star,temp[2,])
-        }
+      }else{temp <- it.sol(s.data[,batches[[i]]],gamma.hat[i,],delta.hat[i,],gamma.bar[i],t2[i],a.prior[i],b.prior[i])
+            gamma.star <- rbind(gamma.star,temp[1,])
+            delta.star <- rbind(delta.star,temp[2,])
+      }
     }
   }else{
     cat("Finding nonparametric adjustments\n")
@@ -158,6 +185,14 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
   }
   
   bayesdata <- (bayesdata*(sqrt(var.pooled)%*%t(rep(1,n.array))))+stand.mean
+  
+  ##### tiny change still exist when tested on bladder data
+  #### total sum of change within each batch around 1e-15 
+  ##### (could be computational system error).  
+  ##### Do not change ref batch at all in reference version
+  if(!is.null(ref.batch)){
+    bayesdata[, batches[[ref]]] <- dat[, batches[[ref]]]
+  }
   
   return(bayesdata)
   
