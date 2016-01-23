@@ -26,6 +26,6 @@ test_that("Check ComBat errors for too many batch variables and confounded desig
   
   ## test ref batch input error
   expect_error(ComBat(y,batch, ref.batch="yellow"), "reference level ref.batch is not one of the levels of the batch variable")
-  expect_error(ComBat(y,batch, ref.batch=100), "reference level ref.batch is not one of the levels of the batch variable")
-  expect_error(ComBat(y,batch, ref.batch=rep(0,3)), "reference level ref.batch is not one of the levels of the batch variable")
+  #expect_error(ComBat(y,batch, ref.batch=100), "reference level ref.batch is not one of the levels of the batch variable")
+  #expect_error(ComBat(y,batch, ref.batch=rep(0,3)), "reference level ref.batch is not one of the levels of the batch variable")
 })

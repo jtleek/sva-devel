@@ -13,6 +13,7 @@ BiocStyle::latex()
 
 
 \begin{document} 
+\SweaveOpts{concordance=TRUE}
 \title{The SVA package for removing batch effects and other unwanted variation in high-throughput experiments}
 \author{Jeffrey Leek$^1$*, W. Evan Johnson$^2$, Andrew Jaffe$^1$, Hilary Parker$^1$, John Storey$^3$ \\
 $^1$Johns Hopkins Bloomberg School of Public Health \\

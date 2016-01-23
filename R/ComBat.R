@@ -11,7 +11,7 @@
 #' @param par.prior (Optional) TRUE indicates parametric adjustments will be used, FALSE indicates non-parametric adjustments will be used
 #' @param prior.plots (Optional) TRUE give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric
 #' @param mean.only (Optional) FALSE If TRUE ComBat only corrects the mean of the batch effect (no scale adjustment)
-#' @param ref.batch (Optional) NULL if given, will use the selected batch as a reference for batch adjustment. The reference will not change and other batches will be adjusted to the reference
+#' @param ref.batch (Optional) NULL If given, will use the selected batch as a reference for batch adjustment. 
 #'
 #' @return data A probe x sample genomic measure matrix, adjusted for batch effects.
 #' 
