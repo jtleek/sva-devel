@@ -54,8 +54,22 @@ produces estimates of the probability of being an empirical control. See the fun
 \details{
 A vignette is available by typing \code{browseVignettes("sva")} in the R prompt.
 }
+\examples{
+library(bladderbatch)
+data(bladderdata)
+dat <- bladderEset[1:5000,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+mod = model.matrix(~as.factor(cancer), data=pheno)
+mod0 = model.matrix(~1,data=pheno)
+
+n.sv = num.sv(edata,mod,method="leek")
+svobj = sva(edata,mod,mod0,n.sv=n.sv)
+
+}
 \author{
-Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey
+Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey, Yuqing Zhang
 }
 \references{
 For the package: Leek JT, Johnson WE, Parker HS, Jaffe AE, and Storey JD. (2012) The sva package for removing batch effects and other unwanted variation in high-throughput experiments. Bioinformatics DOI:10.1093/bioinformatics/bts034

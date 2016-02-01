@@ -15,6 +15,25 @@
 #'
 #' @return data A probe x sample genomic measure matrix, adjusted for batch effects.
 #' 
+#' @examples 
+#' library(bladderbatch)
+#' data(bladderdata)
+#' dat <- bladderEset[1:50,]
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' batch = pheno$batch
+#' mod = model.matrix(~as.factor(cancer), data=pheno)
+#' 
+#' # parametric adjustment
+#' combat_edata1 = ComBat(dat=edata, batch=batch, mod=NULL, par.prior=TRUE, prior.plots=FALSE)
+#' 
+#' # non-parametric adjustment, mean-only version
+#' combat_edata2 = ComBat(dat=edata, batch=batch, mod=NULL, par.prior=FALSE, mean.only=TRUE)
+#' 
+#' # reference-batch version, with covariates
+#' combat_edata3 = ComBat(dat=edata, batch=batch, mod=mod, par.prior=TRUE, ref.batch=3)
+#' 
 #' @export
 #' 
 
@@ -91,9 +110,9 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
   }else{
     if(!is.null(ref.batch)){
       ref.dat <- dat[, batches[[ref]]]
-      var.pooled <- apply(ref.dat-t(design[batches[[ref]], ]%*%B.hat),1,var,na.rm=T)
+      var.pooled <- apply(ref.dat-t(design[batches[[ref]], ]%*%B.hat),1,var,na.rm=TRUE)
     }else{
-      var.pooled <- apply(dat-t(design%*%B.hat),1,var,na.rm=T)
+      var.pooled <- apply(dat-t(design%*%B.hat),1,var,na.rm=TRUE)
     }
   }
   
@@ -113,7 +132,7 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
   delta.hat <- NULL
   for (i in batches){
     if(mean.only==TRUE){delta.hat <- rbind(delta.hat,rep(1,nrow(s.data)))}else{
-      delta.hat <- rbind(delta.hat,apply(s.data[,i], 1, var,na.rm=T))
+      delta.hat <- rbind(delta.hat,apply(s.data[,i], 1, var,na.rm=TRUE))
     }
   }
   

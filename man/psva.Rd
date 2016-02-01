@@ -23,6 +23,20 @@ included for backwards compatibility. Newer versions of the sva algorithm are av
 through \code{\link{sva}}, \code{\link{svaseq}}, with low level functionality available
 through \code{\link{irwsva.build}} and \code{\link{ssva}}.
 }
+\examples{
+library(bladderbatch)
+library(limma)
+data(bladderdata)
+dat <- bladderEset[1:50,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+batch = pheno$batch
+batch.fac = as.factor(batch)
+
+psva_data <- psva(edata,batch.fac)
+
+}
 \author{
 Elana J. Fertig
 }

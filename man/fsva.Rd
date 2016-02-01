@@ -31,4 +31,35 @@ to remove batch effects both from the training database and a new data set for p
 For inferential analysis see \code{\link{sva}}, \code{\link{svaseq}}, with low level functionality available
 through \code{\link{irwsva.build}} and \code{\link{ssva}}.
 }
+\examples{
+library(bladderbatch)
+library(pamr)
+data(bladderdata)
+dat <- bladderEset[1:50,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+
+set.seed(1234)
+trainIndicator = sample(1:57,size=30,replace=FALSE)
+testIndicator = (1:57)[-trainIndicator]
+trainData = edata[,trainIndicator]
+testData = edata[,testIndicator]
+trainPheno = pheno[trainIndicator,]
+testPheno = pheno[testIndicator,]
+
+mydata = list(x=trainData,y=trainPheno$cancer)
+mytrain = pamr.train(mydata)
+table(pamr.predict(mytrain,testData,threshold=2),testPheno$cancer)
+
+trainMod = model.matrix(~cancer,data=trainPheno)
+trainMod0 = model.matrix(~1,data=trainPheno)
+trainSv = sva(trainData,trainMod,trainMod0)
+
+fsvaobj = fsva(trainData,trainMod,trainSv,testData)
+mydataSv = list(x=fsvaobj$db,y=trainPheno$cancer)
+mytrainSv = pamr.train(mydataSv)
+table(pamr.predict(mytrainSv,fsvaobj$new,threshold=1),testPheno$cancer)
+
+}
 

@@ -29,4 +29,19 @@ variables of interest are assumed to be known in advance. This supervised sva
 approach can be called through the \code{\link{sva}} and \code{\link{svaseq}} functions
 by specifying controls.
 }
+\examples{
+library(bladderbatch)
+data(bladderdata)
+dat <- bladderEset[1:5000,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+mod = model.matrix(~as.factor(cancer), data=pheno)
+
+n.sv = num.sv(edata,mod,method="leek")
+set.seed(1234)
+controls <- runif(nrow(edata))
+ssva_res <- ssva(edata,controls,n.sv)
+
+}
 

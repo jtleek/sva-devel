@@ -32,4 +32,20 @@ sva fit and fix the sva object where possible.
 \details{
 \code{\link{empirical.controls}} for a direct estimate of the empirical controls.
 }
+\examples{
+library(bladderbatch)
+data(bladderdata)
+#dat <- bladderEset
+dat <- bladderEset[1:5000,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+mod = model.matrix(~as.factor(cancer), data=pheno)
+mod0 = model.matrix(~1,data=pheno)
+
+n.sv = num.sv(edata,mod,method="leek")
+svobj = sva(edata,mod,mod0,n.sv=n.sv)
+svacheckobj = sva.check(svobj,edata,mod,mod0)
+
+}
 

@@ -74,7 +74,7 @@ it.sol  <- function(sdat,g.hat,d.hat,g.bar,t2,a,b,conv=.0001){
 	count <- 0
 	while(change>conv){
 		g.new <- postmean(g.hat,g.bar,n,d.old,t2)
-		sum2 <- apply((sdat-g.new%*%t(rep(1,ncol(sdat))))^2, 1, sum,na.rm=T)
+		sum2 <- apply((sdat-g.new%*%t(rep(1,ncol(sdat))))^2, 1, sum,na.rm=TRUE)
 		d.new <- postvar(sum2,n,a,b)
 		change <- max(abs(g.new-g.old)/g.old,abs(d.new-d.old)/d.old)
 		g.old <- g.new
@@ -100,7 +100,7 @@ int.eprior <- function(sdat,g.hat,d.hat){
 		x <- sdat[i,!is.na(sdat[i,])]
 		n <- length(x)
 		j <- numeric(n)+1
-		dat <- matrix(as.numeric(x),length(g),n,byrow=T)
+		dat <- matrix(as.numeric(x),length(g),n,byrow=TRUE)
 		resid2 <- (dat-g)^2
 		sum2 <- resid2%*%j
 		LH <- 1/(2*pi*d)^(n/2)*exp(-sum2/(2*d))

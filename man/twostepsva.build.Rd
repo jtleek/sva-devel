@@ -29,4 +29,18 @@ included for backwards compatibility. Newer versions of the sva algorithm are av
 through \code{\link{sva}}, \code{\link{svaseq}}, with low level functionality available
 through \code{\link{irwsva.build}} and \code{\link{ssva}}.
 }
+\examples{
+library(bladderbatch)
+library(limma)
+data(bladderdata)
+dat <- bladderEset
+
+pheno = pData(dat)
+edata = exprs(dat)
+mod = model.matrix(~as.factor(cancer), data=pheno)
+
+n.sv = num.sv(edata,mod,method="leek")
+svatwostep <- twostepsva.build(edata,mod,n.sv)
+
+}
 

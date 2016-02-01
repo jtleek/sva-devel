@@ -29,4 +29,16 @@ in a differential expression model. The default approach is based on a permutati
 procedure originally prooposed by Buja and Eyuboglu 1992. The function also provides
 an interface to the asymptotic approach proposed by Leek 2011 Biometrics.
 }
+\examples{
+library(bladderbatch)
+data(bladderdata)
+dat <- bladderEset[1:5000,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+mod = model.matrix(~as.factor(cancer), data=pheno)
+
+n.sv = num.sv(edata,mod,method="leek")
+
+}
 

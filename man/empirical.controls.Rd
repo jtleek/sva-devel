@@ -27,4 +27,17 @@ pcontrol A vector of probabilites that each gene is a control.
 This function uses the iteratively reweighted surrogate variable analysis approach
 to estimate the probability that each gene is an empirical control.
 }
+\examples{
+library(bladderbatch)
+data(bladderdata)
+dat <- bladderEset[1:5000,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+mod = model.matrix(~as.factor(cancer), data=pheno)
+
+n.sv = num.sv(edata,mod,method="leek")
+pcontrol <- empirical.controls(edata,mod,mod0=NULL,n.sv=n.sv,type="norm")
+
+}
 

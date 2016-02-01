@@ -1,6 +1,7 @@
 #include <R.h> 
 #include <Rinternals.h> 
 #include <Rmath.h>
+#include <R_ext/Rdynload.h>
 
 SEXP monotone(SEXP lfdr){ 
   int i,n;
@@ -21,4 +22,19 @@ SEXP monotone(SEXP lfdr){
   }  
   UNPROTECT(1);
   return(Rlfdr);
+}
+static const
+R_CallMethodDef callMethods[]  = {
+  {"monotone", (DL_FUNC) &monotone, 1},
+  NULL
+};
+
+void R_init_sva(DllInfo *info)
+{
+     R_registerRoutines(info, NULL, callMethods, NULL, NULL);
+}
+     
+void R_unload_sva(DllInfo *info)
+{
+    (void) info;
 }

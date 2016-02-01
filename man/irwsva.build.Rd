@@ -32,4 +32,17 @@ approach for estimating surrogate variables. As a buy product, this function
 produces estimates of the probability of being an empirical control. See the function
 \code{\link{empirical.controls}} for a direct estimate of the empirical controls.
 }
+\examples{
+library(bladderbatch)
+data(bladderdata)
+dat <- bladderEset[1:5000,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+mod = model.matrix(~as.factor(cancer), data=pheno)
+
+n.sv = num.sv(edata,mod,method="leek")
+res <- irwsva.build(edata, mod, mod0 = NULL,n.sv,B=5) 
+
+}
 

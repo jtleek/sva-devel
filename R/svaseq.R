@@ -22,6 +22,21 @@
 #' @return pprob.b A vector of the posterior probabilities each gene is affected by mod
 #' @return n.sv The number of significant surrogate variables
 #' 
+#' @examples 
+#' library(zebrafishRNASeq)
+#' data(zfGenes)
+#' filter = apply(zfGenes, 1, function(x) length(x[x>5])>=2)
+#' filtered = zfGenes[filter,]
+#' genes = rownames(filtered)[grep("^ENS", rownames(filtered))]
+#' controls = grepl("^ERCC", rownames(filtered))
+#' group = as.factor(rep(c("Ctl", "Trt"), each=3))
+#' dat0 = as.matrix(filtered)
+#' 
+#' mod1 = model.matrix(~group)
+#' mod0 = cbind(mod1[,1])
+#' svseq = svaseq(dat0,mod1,mod0,n.sv=1)$sv
+#' plot(svseq,pch=19,col="blue")
+#' 
 #' @export
 #' 
 

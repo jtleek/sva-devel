@@ -10,6 +10,19 @@
 #' @param mod0 The null model being compared when fitting the data
 #' 
 #' @return fstats A vector of F-statistics one for each row of dat. 
+#' 
+#' @examples 
+#' library(bladderbatch)
+#' data(bladderdata)
+#' dat <- bladderEset[1:50,]
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' mod = model.matrix(~as.factor(cancer), data=pheno)
+#' mod0 = model.matrix(~1,data=pheno)
+#' 
+#' fs <- fstats(edata, mod, mod0)
+#' 
 #' @export
 #' 
 

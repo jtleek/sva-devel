@@ -22,4 +22,17 @@ for each row of a data matrix comparing the nested models
 defined by the design matrices for the alternative (mod) and and null (mod0) cases.
 The columns of mod0 must be a subset of the columns of mod.
 }
+\examples{
+library(bladderbatch)
+data(bladderdata)
+dat <- bladderEset[1:50,]
+
+pheno = pData(dat)
+edata = exprs(dat)
+mod = model.matrix(~as.factor(cancer), data=pheno)
+mod0 = model.matrix(~1,data=pheno)
+
+fs <- fstats(edata, mod, mod0)
+
+}
 
