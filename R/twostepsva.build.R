@@ -15,6 +15,19 @@
 #' @return pprob.b A vector of the posterior probabilities each gene is affected by mod (this is always null for the two-step approach)
 #' @return n.sv The number of significant surrogate variables
 #' 
+#' @examples 
+#' library(bladderbatch)
+#' library(limma)
+#' data(bladderdata)
+#' dat <- bladderEset
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' mod = model.matrix(~as.factor(cancer), data=pheno)
+#' 
+#' n.sv = num.sv(edata,mod,method="leek")
+#' svatwostep <- twostepsva.build(edata,mod,n.sv)
+#' 
 #' @export
 #' 
 
@@ -50,7 +63,7 @@ twostepsva.build <- function(dat, mod, n.sv){
   }
   if(n.sv >0){
     sv <- matrix(0,nrow=n,ncol=n.sv)
-    dat <- t(scale(t(dat),scale=F))
+    dat <- t(scale(t(dat),scale=FALSE))
     for(i in 1:n.sv) {
       uu <- svd(dat[use.var[,i],])
       maxcor <- 0
