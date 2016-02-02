@@ -12,6 +12,18 @@
 #'
 #' @return psva.D Data with batch effect removed but biological heterogeneity preserved
 #' 
+#' @examples 
+#' library(bladderbatch)
+#' library(limma)
+#' data(bladderdata)
+#' dat <- bladderEset[1:50,]
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' batch = pheno$batch
+#' batch.fac = as.factor(batch)
+#' 
+#' psva_data <- psva(edata,batch.fac)
 #' 
 #' @author Elana J. Fertig 
 #' 

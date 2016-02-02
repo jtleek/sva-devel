@@ -13,6 +13,7 @@ BiocStyle::latex()
 
 
 \begin{document} 
+\SweaveOpts{concordance=TRUE}
 \title{The SVA package for removing batch effects and other unwanted variation in high-throughput experiments}
 \author{Jeffrey Leek$^1$*, W. Evan Johnson$^2$, Andrew Jaffe$^1$, Hilary Parker$^1$, John Storey$^3$ \\
 $^1$Johns Hopkins Bloomberg School of Public Health \\
@@ -215,7 +216,7 @@ The surrogate variable analysis functions have been developed for population-lev
 
 <<input>>=
 set.seed(12354)
-trainIndicator = sample(1:57,size=30,replace=F)
+trainIndicator = sample(1:57,size=30,replace=FALSE)
 testIndicator = (1:57)[-trainIndicator]
 
 trainData = edata[,trainIndicator]
@@ -259,7 +260,6 @@ First we set up the data by filtering low count genes and identify potential con
 
 <<input>>=
 library(zebrafishRNASeq)
-library(genefilter)
 data(zfGenes)
 filter = apply(zfGenes, 1, function(x) length(x[x>5])>=2)
 filtered = zfGenes[filter,]
