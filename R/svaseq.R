@@ -45,7 +45,7 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
   method <- match.arg(method)
   if(!is.null(controls) & !is.null(vfilter)){stop("sva error: if controls is provided vfilter must be NULL.\n")}
   if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.\n")}
-  if(!is.null(controls) & (method!="supervised")){method = "supervised"; cat("sva warning: controls provided so supervised sva is being performed.\n")}
+  if(!is.null(controls) & (method!="supervised")){method = "supervised"; message("sva warning: controls provided so supervised sva is being performed.")}
   
   if(any(dat < 0)){stop("svaseq error: counts must be zero or greater")}
   dat = log(dat + constant)
@@ -65,7 +65,7 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
   }
   
   if(n.sv > 0){
-    cat(paste("Number of significant surrogate variables is: ",n.sv,"\n"))
+    message(paste0("Number of significant surrogate variables is: ", n.sv, "."))
  
     if(method=="two-step"){
       return(twostepsva.build(dat=dat, mod=mod,n.sv=n.sv))
@@ -77,7 +77,8 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
       return(ssva(dat,controls,n.sv=n.sv))
     }
   }else{
-    cat("No significant surrogate variables\n"); return(list(sv=0,pprob.gam=0,pprob.b=0,n.sv=0))
+      message("No significant surrogate variables.")
+      return(list(sv=0,pprob.gam=0,pprob.b=0,n.sv=0))
   }
 
 }
