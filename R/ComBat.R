@@ -38,6 +38,10 @@
 #' 
 
 ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.only=FALSE,ref.batch=NULL) {
+  # check to make sure there are no rows in the data with zero variance
+  if (sum(apply(dat, 1, var) == 0) > 0) {
+    stop("One or more rows in the data found to have zero variance.")
+  }
   # make batch a factor and make a set of indicators for batch
   if(mean.only==TRUE){cat("Using the 'mean only' version of ComBat\n")}
   if(length(dim(batch))>1){stop("This version of ComBat only allows one batch variable")}  ## to be updated soon!
