@@ -14,7 +14,12 @@
 #' @return the normalized degradation matrix, region by sample
 #' 
 #' @examples 
-
+#' bwPath = system.file('extdata', 'bwtool', package = 'sva')
+#' degCovAdj = read.degradation.matrix(
+#'  covFiles = list.files(bwPath,full.names=TRUE),
+#'  sampleNames = list.files(bwPath), L = 76, 
+#'  totalMapped = rep(100e6,5),type="bwtool")
+#'  
 
 read.degradation.matrix <- function(covFiles, sampleNames,
 	totalMapped, readLength= 100, normFactor = 80e6,
@@ -26,8 +31,6 @@ read.degradation.matrix <- function(covFiles, sampleNames,
 	if(length(covFiles) != length(sampleNames) & 
 		type %in% c("bwtool", "region_matrix_single")) 
 			stop("Must provide one coverage file and sample name per sample for 'bwtool' or 'region_matrix_single' types")
-	
-	require(parallel)
 	
 	## read in data
 	if(type == "bwtool") { # bwtool output
