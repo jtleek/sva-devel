@@ -16,6 +16,36 @@
 #' @return new An adjusted version of the new samples, adjusted one at a time using the fsva methodology. 
 #' @return newsv Surrogate variables for the new samples
 #' 
+#' @examples 
+#' library(bladderbatch)
+#' library(pamr)
+#' data(bladderdata)
+#' dat <- bladderEset[1:50,]
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' 
+#' set.seed(1234)
+#' trainIndicator = sample(1:57,size=30,replace=FALSE)
+#' testIndicator = (1:57)[-trainIndicator]
+#' trainData = edata[,trainIndicator]
+#' testData = edata[,testIndicator]
+#' trainPheno = pheno[trainIndicator,]
+#' testPheno = pheno[testIndicator,]
+#' 
+#' mydata = list(x=trainData,y=trainPheno$cancer)
+#' mytrain = pamr.train(mydata)
+#' table(pamr.predict(mytrain,testData,threshold=2),testPheno$cancer)
+#' 
+#' trainMod = model.matrix(~cancer,data=trainPheno)
+#' trainMod0 = model.matrix(~1,data=trainPheno)
+#' trainSv = sva(trainData,trainMod,trainMod0)
+#' 
+#' fsvaobj = fsva(trainData,trainMod,trainSv,testData)
+#' mydataSv = list(x=fsvaobj$db,y=trainPheno$cancer)
+#' mytrainSv = pamr.train(mydataSv)
+#' table(pamr.predict(mytrainSv,fsvaobj$new,threshold=1),testPheno$cancer)
+#' 
 #' @export
 #' 
 
@@ -39,7 +69,7 @@ fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
     if(method=="fast"){
       wts <- (1-sv$pprob.b)*sv$pprob.gam
       WX <- wts*dbdat
-      svd.wx = svd(t(scale(t(WX),scale=F)))
+      svd.wx = svd(t(scale(t(WX),scale=FALSE)))
       D <- svd.wx$d[1:n.sv]
       U <- svd.wx$u[,1:n.sv]
       P <- t(wts*t(1/D * t(U)))
@@ -64,7 +94,7 @@ fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
       for(i in 1:nnew){
         tmp = cbind(dbdat,newdat[,i])
         tmpd = (1-sv$pprob.b)*sv$pprob.gam*tmp
-        ss = svd(t(scale(t(tmpd),scale=F)))
+        ss = svd(t(scale(t(tmpd),scale=FALSE)))
         sgn = rep(NA,sv$n.sv)
         for(j in 1:sv$n.sv){
           if(sv$n.sv>1){

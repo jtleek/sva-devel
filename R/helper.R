@@ -49,62 +49,6 @@ edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
 
 
 
-
-
-
-# filters data based on presence/absence call
-filter.absent <- function(x,pct){
-	present <- T
-	col <- length(x)/2
-	pct.absent <- (sum(x[2*(1:col)]=="A") + sum(x[2*(1:col)]=="M"))/col
-	if(pct.absent > pct){present <- F}
-	present
-	}
-
-# Next two functions make the design matrix (X) from the sample info file 
-build.design <- function(vec, des=NULL, start=2){
-	tmp <- matrix(0,length(vec),nlevels(vec)-start+1)
-	for (i in 1:ncol(tmp)){tmp[,i] <- vec==levels(vec)[i+start-1]}
-	cbind(des,tmp)
-	}
-
-design.mat <- function(mod, numCov){
-
-	tmp <- which(colnames(mod) == 'Batch')
-	tmp1 <- as.factor(mod[,tmp])
-	cat("Found",nlevels(tmp1),'batches\n')
-	design <- build.design(tmp1,start=1)
-
-	if(!is.null(numCov)) {
-		theNumCov = as.matrix(mod[,numCov])
-		mod0 = as.matrix(mod[,-c(numCov,tmp)])
-	} else 	mod0 = as.matrix(mod[,-tmp])
-
-	ncov <- ncol(mod0)
-	
-	cat("Found",ncov,' categorical covariate(s)\n')
-	if(!is.null(numCov)) cat("Found",ncol(theNumCov),' continuous covariate(s)\n')
-	if(ncov>0){
-		for (j in 1:ncov){
-			tmp1 <- as.factor(as.matrix(mod0)[,j])
-			design <- build.design(tmp1,des=design)
-			}
-		}
-	if(!is.null(numCov)) design = cbind(design,theNumCov)
-	return(design)
-
-}
-
-
-
-# Makes a list with elements pointing to which array belongs to which batch
-list.batch <- function(mod){
-	tmp1 <- as.factor(mod[,which(colnames(mod) == 'Batch')])
-	batches <- NULL
-	for (i in 1:nlevels(tmp1)){batches <- append(batches, list((1:length(tmp1))[tmp1==levels(tmp1)[i]]))}
-	batches
-	}
-
 # Trims the data of extra columns, note your array names cannot be named 'X' or start with 'X.'
 trim.dat <- function(dat){
 	tmp <- strsplit(colnames(dat),'\\.')
@@ -130,7 +74,7 @@ it.sol  <- function(sdat,g.hat,d.hat,g.bar,t2,a,b,conv=.0001){
 	count <- 0
 	while(change>conv){
 		g.new <- postmean(g.hat,g.bar,n,d.old,t2)
-		sum2 <- apply((sdat-g.new%*%t(rep(1,ncol(sdat))))^2, 1, sum,na.rm=T)
+		sum2 <- apply((sdat-g.new%*%t(rep(1,ncol(sdat))))^2, 1, sum,na.rm=TRUE)
 		d.new <- postvar(sum2,n,a,b)
 		change <- max(abs(g.new-g.old)/g.old,abs(d.new-d.old)/d.old)
 		g.old <- g.new
@@ -156,7 +100,7 @@ int.eprior <- function(sdat,g.hat,d.hat){
 		x <- sdat[i,!is.na(sdat[i,])]
 		n <- length(x)
 		j <- numeric(n)+1
-		dat <- matrix(as.numeric(x),length(g),n,byrow=T)
+		dat <- matrix(as.numeric(x),length(g),n,byrow=TRUE)
 		resid2 <- (dat-g)^2
 		sum2 <- resid2%*%j
 		LH <- 1/(2*pi*d)^(n/2)*exp(-sum2/(2*d))
