@@ -10,6 +10,14 @@
 #' @return the qSV adjustment variables
 #'
 #' @examples 
+#' degCovAdj = read.degradation.matrix(
+#'  covFiles = list.files(bwPath,full.names=TRUE),
+#'  sampleNames = list.files(bwPath), readLength = 76, 
+#'  totalMapped = rep(100e6,5),type="bwtool")
+#'  head(degCovAdj)
+#' qsva(degCovAdj)
+#'
+#' @export
 
 qsva <- function(degradationMatrix, 
 		mod = matrix(1,nc=1,nr = ncol(degradationMatrix))) {

@@ -30,7 +30,8 @@ Maintainer: Jeffrey T. Leek <jtleek@gmail.com>, John D. Storey
 Depends:
     R (>= 3.2),
     mgcv,
-    genefilter
+    genefilter,
+	parallel
 Suggests:
     limma,
     pamr,

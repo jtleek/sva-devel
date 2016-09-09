@@ -14,12 +14,30 @@
 #' @return the normalized degradation matrix, region by sample
 #' 
 #' @examples 
+#' # bwtool
 #' bwPath = system.file('extdata', 'bwtool', package = 'sva')
 #' degCovAdj = read.degradation.matrix(
 #'  covFiles = list.files(bwPath,full.names=TRUE),
-#'  sampleNames = list.files(bwPath), L = 76, 
+#'  sampleNames = list.files(bwPath), readLength = 76, 
 #'  totalMapped = rep(100e6,5),type="bwtool")
+#'  head(degCovAdj)
 #'  
+#' # region_matrix: each sample
+#' r1Path = system.file('extdata', 'region_matrix_one', package = 'sva')
+#' degCovAdj1 = read.degradation.matrix(
+#'  covFiles = list.files(r1Path,full.names=TRUE),
+#'  sampleNames = list.files(r1Path), readLength = 76, 
+#'  totalMapped = rep(100e6,5),type="region_matrix_single")
+#'  head(degCovAdj2)
+#'  
+#' r2Path = system.file('extdata', 'region_matrix_all', package = 'sva')
+#' degCovAdj2 = read.degradation.matrix(
+#'  covFiles = list.files(r2Path,full.names=TRUE),
+#'  sampleNames = list.files(r1Path), readLength = 76, 
+#'  totalMapped = rep(100e6,5),type="region_matrix_all")
+#' head(degCovAdj2)
+#' 
+#' @export
 
 read.degradation.matrix <- function(covFiles, sampleNames,
 	totalMapped, readLength= 100, normFactor = 80e6,
@@ -42,13 +60,15 @@ read.degradation.matrix <- function(covFiles, sampleNames,
 	} else if(type == "region_matrix_single") { # region w/ manifest
 		degCov = mclapply(covFiles, read.delim,
 			as.is=TRUE,header=TRUE,row.names=1,mc.cores=mc.cores)
+		degCov = lapply(degCov,as.numeric)
 		degCovMat =do.call("cbind",degCov)	
 		colnames(degCovMat) = sampleNames
 	} else if(type == "region_matrix_all") { # region w/ individual file
 		degCov = read.delim(covFiles, as.is=TRUE,row.names=1)
-		degCov = t(as.matrix(degCov))
-		colnames(degCov) = sampleNames
+		degCovMat = t(as.matrix(degCov))
+		colnames(degCovMat) = sampleNames
 	} else stop("type must be 'bwtool','region_matrix_single','region_matrix_all'")
+	
 		
 	## normalize for library size and read length
 	degCovMat = degCovMat/readLength # read length
