@@ -38,6 +38,19 @@
 #' 
 
 ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.only=FALSE,ref.batch=NULL) {
+  # check for genes with uniform expression; if such genes exist, they will
+  # be temporarily removed from the data matrix before performing batch
+  # adjustment and add back in before returning the final result.
+  zero.var.rows <- apply(dat, 1, var) == 0
+
+  if (sum(zero.var.rows) > 0) {
+    cat(sprintf("Found %d genes with uniform expression; these will not be adjusted for batch.\n", sum(zero.var.rows)))
+
+    # keep a copy of the original data matrix and remove zero var rows
+    dat.orig <- dat
+    dat <- dat[!zero.var.rows,]
+  }
+
   # make batch a factor and make a set of indicators for batch
   if(mean.only==TRUE){cat("Using the 'mean only' version of ComBat\n")}
   if(length(dim(batch))>1){stop("This version of ComBat only allows one batch variable")}  ## to be updated soon!
@@ -211,6 +224,13 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
   ##### Do not change ref batch at all in reference version
   if(!is.null(ref.batch)){
     bayesdata[, batches[[ref]]] <- dat[, batches[[ref]]]
+  }
+
+  # if genes genes with uniform expression were held out, add them back in now
+  if (sum(zero.var.rows) > 0) {
+    # keep a copy of the original data matrix and remove zero var rows
+    dat.orig[!zero.var.rows,] <- bayesdata
+    bayesdata <- dat.orig
   }
   
   return(bayesdata)
