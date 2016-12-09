@@ -10,6 +10,7 @@
 #' @param readLength read length in base pairs (read length normalization)
 #' @param normFactor common library size to normalize to; 80M reads as default
 #' @param type whether input are individual `bwtool` output, `region_matrix` run on individual samples, or `region_matrix` run on all samples together
+#' @param BPPARAM (Optional) BiocParallelParam for parallel operation
 #'
 #' @return the normalized degradation matrix, region by sample
 #' 
@@ -42,7 +43,7 @@
 read.degradation.matrix <- function(covFiles, sampleNames,
 	totalMapped, readLength= 100, normFactor = 80e6,
 	type = c("bwtool","region_matrix_single","region_matrix_all"),
-	mc.cores=1) {
+	BPPARAM = bpparam()) {
 	
 	type <- match.arg(type)
 	
@@ -52,14 +53,14 @@ read.degradation.matrix <- function(covFiles, sampleNames,
 	
 	## read in data
 	if(type == "bwtool") { # bwtool output
-		degCov = mclapply(covFiles, read.delim,
+		degCov = bplapply(covFiles, read.delim,
 			as.is=TRUE, colClasses = c(rep("NULL",9),
-				"numeric"),header=TRUE,mc.cores=mc.cores)
+				"numeric"),header=TRUE,BPPARAM=BPPARAM)
 		degCovMat =do.call("cbind",degCov)	
 		colnames(degCovMat) = sampleNames
 	} else if(type == "region_matrix_single") { # region w/ manifest
-		degCov = mclapply(covFiles, read.delim,
-			as.is=TRUE,header=TRUE,row.names=1,mc.cores=mc.cores)
+		degCov = bplapply(covFiles, read.delim,
+			as.is=TRUE,header=TRUE,row.names=1,BPPARAM=BPPARAM)
 		degCov = lapply(degCov,as.numeric)
 		degCovMat =do.call("cbind",degCov)	
 		colnames(degCovMat) = sampleNames

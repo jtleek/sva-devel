@@ -12,6 +12,7 @@
 #' @param prior.plots (Optional) TRUE give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric
 #' @param mean.only (Optional) FALSE If TRUE ComBat only corrects the mean of the batch effect (no scale adjustment)
 #' @param ref.batch (Optional) NULL If given, will use the selected batch as a reference for batch adjustment. 
+#' @param BPPARAM (Optional) BiocParallelParam for parallel operation
 #'
 #' @return data A probe x sample genomic measure matrix, adjusted for batch effects.
 #' 
@@ -37,7 +38,8 @@
 #' @export
 #' 
 
-ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.only=FALSE,ref.batch=NULL) {
+ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
+                    mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam()) {
   # make batch a factor and make a set of indicators for batch
   if(mean.only==TRUE){cat("Using the 'mean only' version of ComBat\n")}
   if(length(dim(batch))>1){stop("This version of ComBat only allows one batch variable")}  ## to be updated soon!
@@ -151,40 +153,57 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
     plot(tmp,  type='l', main="Density Plot")
     xx <- seq(min(tmp$x), max(tmp$x), length=100)
     lines(xx,dnorm(xx,gamma.bar[1],sqrt(t2[1])), col=2)
-    qqnorm(gamma.hat[1,])	
-    qqline(gamma.hat[1,], col=2)	
-    
+    qqnorm(gamma.hat[1,])
+    qqline(gamma.hat[1,], col=2)
+
     tmp <- density(delta.hat[1,])
-    invgam <- 1/rgamma(ncol(delta.hat),a.prior[1],b.prior[1])
-    tmp1 <- density(invgam)
-    plot(tmp,  typ='l', main="Density Plot", ylim=c(0,max(tmp$y,tmp1$y)))
+    xx <- seq(min(tmp$x), max(tmp$x), length=100)
+    tmp1 <- list(x=xx, y=dgamma(xx, a.prior[1], b.prior[1]))
+    plot(tmp, typ="l", main="Density Plot", ylim=c(0, max(tmp$y, tmp1$y)))
     lines(tmp1, col=2)
-    qqplot(delta.hat[1,], invgam, xlab="Sample Quantiles", ylab='Theoretical Quantiles')	
-    lines(c(0,max(invgam)),c(0,max(invgam)),col=2)	
-    title('Q-Q Plot')
+    invgam <- 1/qgamma(ppoints(ncol(delta.hat)), a.prior[1], b.prior[1])
+    qqplot(delta.hat[1,], invgam, xlab="Sample Quantiles", ylab="Theoretical Quantiles")
+    lines(c(0, max(invgam)), c(0, max(invgam)), col=2)
+    title("Q-Q Plot")
   }
   
   ##Find EB batch adjustments
-  
-  gamma.star <- delta.star <- NULL
-  if(par.prior){
+
+  gamma.star <- delta.star <- matrix(NA, nrow=n.batch, ncol=nrow(s.data))
+  if (par.prior) {
     cat("Finding parametric adjustments\n")
-    for (i in 1:n.batch){
-      if(mean.only){
-        gamma.star <- rbind(gamma.star,postmean(gamma.hat[i,],gamma.bar[i],1,1,t2[i]))
-        delta.star <- rbind(delta.star,rep(1,nrow(s.data)))
-      }else{temp <- it.sol(s.data[,batches[[i]]],gamma.hat[i,],delta.hat[i,],gamma.bar[i],t2[i],a.prior[i],b.prior[i])
-            gamma.star <- rbind(gamma.star,temp[1,])
-            delta.star <- rbind(delta.star,temp[2,])
+    results <- bplapply(1:n.batch, function(i) {
+      if (mean.only) {
+        gamma.star <- postmean(gamma.hat[i,], gamma.bar[i], 1, 1, t2[i])
+        delta.star <- rep(1, nrow(s.data))
       }
+      else {
+        temp <- it.sol(s.data[, batches[[i]]], gamma.hat[i,
+                                                         ], delta.hat[i, ], gamma.bar[i], t2[i], a.prior[i],
+                       b.prior[i])
+        gamma.star <- temp[1, ]
+        delta.star <- temp[2, ]
+      }
+      list(gamma.star=gamma.star, delta.star=delta.star)
+    }, BPPARAM = BPPARAM)
+    for (i in 1:n.batch) {
+      gamma.star[i,] <- results[[i]]$gamma.star
+      delta.star[i,] <- results[[i]]$delta.star
     }
-  }else{
+  }
+  else {
     cat("Finding nonparametric adjustments\n")
-    for (i in 1:n.batch){
-      if(mean.only){delta.hat[i,]=1}
-      temp <- int.eprior(as.matrix(s.data[,batches[[i]]]),gamma.hat[i,],delta.hat[i,])
-      gamma.star <- rbind(gamma.star,temp[1,])
-      delta.star <- rbind(delta.star,temp[2,])
+    results <- bplapply(1:n.batch, function(i) {
+      if (mean.only) {
+        delta.hat[i, ] = 1
+      }
+      temp <- int.eprior(as.matrix(s.data[, batches[[i]]]),
+                         gamma.hat[i, ], delta.hat[i, ])
+      list(gamma.star=temp[1,], delta.star=temp[2,])
+    }, BPPARAM = BPPARAM)
+    for (i in 1:n.batch) {
+      gamma.star[i,] <- results[[i]]$gamma.star
+      delta.star[i,] <- results[[i]]$delta.star
     }
   }
   
@@ -192,7 +211,7 @@ ComBat <- function(dat, batch, mod=NULL, par.prior=TRUE,prior.plots=FALSE,mean.o
     gamma.star[ref,]=0  ## set reference batch mean equal to 0
     delta.star[ref,]=1  ## set reference batch variance equal to 1
   }
-  
+
   ### Normalize the Data ###
   cat("Adjusting the Data\n")
   

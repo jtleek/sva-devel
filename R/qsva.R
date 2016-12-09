@@ -5,7 +5,7 @@
 #' degradation matrix for subsequent RNA quality correction
 #' 
 #' @param degradationMatrix the normalized degradation matrix, region by sample
-#' @param mod: optional, statistical model used in DE analysis
+#' @param mod (Optional) statistical model used in DE analysis
 #'
 #' @return the qSV adjustment variables
 #'
