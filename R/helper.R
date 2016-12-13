@@ -17,7 +17,7 @@ edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
 
 	n = length(p)
 	transf = match.arg(transf)
-	
+
 	if(transf=="probit") {
 		p = pmax(p, eps)
 		p = pmin(p, 1-eps)
@@ -27,7 +27,7 @@ edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
 		y = predict(mys, x)$y
 		lfdr = pi0*dnorm(x)/y
 	}
-	
+
 	if(transf=="logit") {
 		x = log((p+eps)/(1-p+eps))
 		myd = density(x, adjust=adj)
@@ -36,14 +36,14 @@ edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
 		dx = exp(x)/(1+exp(x))^2
 		lfdr = pi0*dx/y
 	}
-	
+
 	if(trunc) {lfdr[lfdr > 1] = 1}
-	if(monotone) {	
+	if(monotone) {
 		lfdr = lfdr[order(p)]
                 lfdr = mono(lfdr)
 		lfdr = lfdr[rank(p)]
 	}
-	
+
 	return(lfdr)
 }
 
@@ -96,7 +96,7 @@ int.eprior <- function(sdat,g.hat,d.hat){
 	r <- nrow(sdat)
 	for(i in 1:r){
 		g <- g.hat[-i]
-		d <- d.hat[-i]		
+		d <- d.hat[-i]
 		x <- sdat[i,!is.na(sdat[i,])]
 		n <- length(x)
 		j <- numeric(n)+1
@@ -111,16 +111,13 @@ int.eprior <- function(sdat,g.hat,d.hat){
 		}
 	adjust <- rbind(g.star,d.star)
 	rownames(adjust) <- c("g.star","d.star")
-	adjust	
-	} 
+	adjust
+	}
 
 #fits the L/S model in the presence of missing data values
-
 Beta.NA = function(y,X){
 	des=X[!is.na(y),]
 	y1=y[!is.na(y)]
 	B <- solve(t(des)%*%des)%*%t(des)%*%y1
 	B
 	}
-
-
