@@ -40,24 +40,24 @@
 ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
                     mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam()) {
   # make batch a factor and make a set of indicators for batch
-  if(mean.only==TRUE){cat("Using the 'mean only' version of ComBat\n")}
+  if(mean.only==TRUE){message("Using the 'mean only' version of ComBat.")}
   if(length(dim(batch))>1){stop("This version of ComBat only allows one batch variable")}  ## to be updated soon!
   batch <- as.factor(batch)
   batchmod <- model.matrix(~-1+batch)
   if (!is.null(ref.batch)){ # check for reference batch, check value, and make appropriate changes
     if (!(ref.batch%in%levels(batch))){stop("reference level ref.batch is not one of the levels of the batch variable")}
-    cat("Using batch =",ref.batch, "as a reference batch (this batch won't change)\n")
+    message(paste0("Using batch =", ref.batch, "as a reference batch (this batch won't change)."))
     ref = which(levels(as.factor(batch))==ref.batch) # find the reference
     batchmod[,ref]=1
   }else{ref=NULL}
-  cat("Found",nlevels(batch),'batches\n')
+  message(paste0("Found", nlevels(batch), "batches."))
 
   # A few other characteristics on the batches
   n.batch <- nlevels(batch)
   batches <- list()
   for (i in 1:n.batch){batches[[i]] <- which(batch == levels(batch)[i])} # list of samples in each batch
   n.batches <- sapply(batches, length)
-  if(any(n.batches==1)){mean.only=TRUE; cat("Note: one batch has only one sample, setting mean.only=TRUE\n")}
+  if(any(n.batches==1)){mean.only=TRUE; message("Note: one batch has only one sample, setting mean.only=TRUE.")}
   n.array <- sum(n.batches)
 
   #combine batch variable and covariates
@@ -69,7 +69,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
   design <- as.matrix(design[,!check])
 
   # Number of covariates or covariate levels
-  cat("Adjusting for",ncol(design)-ncol(batchmod),'covariate(s) or covariate level(s)\n')
+  message(paste0("Adjusting for", ncol(design)-ncol(batchmod), "covariate(s) or covariate level(s).")
 
   # Check if the design is confounded
   if(qr(design)$rank<ncol(design)){
@@ -82,11 +82,11 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
 
   ## Check for missing values
   NAs = any(is.na(dat))
-  if(NAs){cat(c('Found',sum(is.na(dat)),'Missing Data Values\n'),sep=' ')}
+  if(NAs){message(paste0("Found ", sum(is.na(dat)), " Missing Data Values."))}
   #print(dat[1:2,])
 
   ##Standardize Data across genes
-  cat('Standardizing Data across genes\n')
+  message("Standardizing Data across genes.")
   if (!NAs){
     B.hat <- solve(t(design)%*%design)%*%t(design)%*%t(as.matrix(dat))
   }else{
@@ -122,7 +122,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
   s.data <- (dat-stand.mean)/(sqrt(var.pooled)%*%t(rep(1,n.array)))
 
   ##Get regression batch effect parameters
-  cat("Fitting L/S model and finding priors\n")
+  message("Fitting L/S model and finding priors.")
   batch.design <- design[,1:n.batch]
   if (!NAs){
     gamma.hat <- solve(t(batch.design)%*%batch.design)%*%t(batch.design)%*%t(as.matrix(s.data))
@@ -170,7 +170,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
 
   gamma.star <- delta.star <- matrix(NA, nrow=n.batch, ncol=nrow(s.data))
   if (par.prior) {
-    cat("Finding parametric adjustments\n")
+    message("Finding parametric adjustments.")
     results <- bplapply(1:n.batch, function(i) {
       if (mean.only) {
         gamma.star <- postmean(gamma.hat[i,], gamma.bar[i], 1, 1, t2[i])
@@ -191,7 +191,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     }
   }
   else {
-    cat("Finding nonparametric adjustments\n")
+    message("Finding nonparametric adjustments.")
     results <- bplapply(1:n.batch, function(i) {
       if (mean.only) {
         delta.hat[i, ] = 1
@@ -212,7 +212,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
   }
 
   ### Normalize the Data ###
-  cat("Adjusting the Data\n")
+  message("Adjusting the Data.")
 
   bayesdata <- s.data
   j <- 1

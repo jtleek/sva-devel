@@ -81,7 +81,7 @@ it.sol  <- function(sdat,g.hat,d.hat,g.bar,t2,a,b,conv=.0001){
 		d.old <- d.new
 		count <- count+1
 		}
-	#cat("This batch took", count, "iterations until convergence\n")
+	#message(paste0("This batch took", count, "iterations until convergence."))
 	adjust <- rbind(g.new, d.new)
 	rownames(adjust) <- c("g.star","d.star")
 	adjust
