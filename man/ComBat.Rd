@@ -5,7 +5,7 @@
 \title{Adjust for batch effects using an empirical Bayes framework}
 \usage{
 ComBat(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
-  mean.only = FALSE, ref.batch = NULL)
+  mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam())
 }
 \arguments{
 \item{dat}{Genomic measure matrix (dimensions probe x sample) - for example, expression matrix}
@@ -21,6 +21,8 @@ ComBat(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
 \item{mean.only}{(Optional) FALSE If TRUE ComBat only corrects the mean of the batch effect (no scale adjustment)}
 
 \item{ref.batch}{(Optional) NULL If given, will use the selected batch as a reference for batch adjustment.}
+
+\item{BPPARAM}{(Optional) BiocParallelParam for parallel operation}
 }
 \value{
 data A probe x sample genomic measure matrix, adjusted for batch effects.

@@ -63,7 +63,7 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
       return(twostepsva.build(dat=dat, mod=mod,n.sv=n.sv))
     }
     if(method=="irw"){
-      return(irwsva.build(dat=dat, mod=mod, mod0 = mod0,n.sv=n.sv,B=B))
+      return(irwsva.build(dat=dat, mod=mod, mod0 = mod0,n.sv=n.sv))
     }
     if(method=="supervised"){
       return(ssva(dat,controls,n.sv))
