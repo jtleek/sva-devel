@@ -66,7 +66,6 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv) {
     dats2 <- dat*pprob.b*(1-pprob.gam)
     dats2 <- dats2 - rowMeans(dats2)
     uu <- eigen(t(dats)%*%dats)
-    cat(paste(i," "))
   }
   
   sv = svd(dats)$v[,1:n.sv]
