@@ -46,6 +46,7 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv) {
   Id <- diag(n)
   df1 <- dim(mod)[2] + n.sv
   df0 <- dim(mod0)[2]  + n.sv
+  dats2 <- dat
   
   rm(resid)
 
