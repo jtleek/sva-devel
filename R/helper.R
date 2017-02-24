@@ -63,6 +63,14 @@ bprior <- function(gamma.hat){m=mean(gamma.hat); s2=var(gamma.hat); (m*s2+m^3)/s
 postmean <- function(g.hat,g.bar,n,d.star,t2){(t2*n*g.hat+d.star*g.bar)/(t2*n+d.star)}
 postvar <- function(sum2,n,a,b){(.5*sum2+b)/(n/2+a-1)}
 
+# Inverse gamma distribution density function. (Note: does not do any bounds checking on arguments)
+dinvgamma <- function (x, shape, rate = 1/scale, scale = 1) {
+    # PDF taken from https://en.wikipedia.org/wiki/Inverse-gamma_distribution
+    # Note: alpha = shape, beta = rate
+    stopifnot(shape > 0)
+    stopifnot(rate > 0)
+    ifelse(x <= 0, 0, ((rate ^ shape) / gamma(shape)) * x ^ (-shape - 1) * exp(-rate/x))
+}
 
 # Pass in entire data set, the design matrix for the entire data, the batch means, the batch variances, priors (m, t2, a, b), columns of the data  matrix for the batch. Uses the EM to find the parametric batch adjustments
 
