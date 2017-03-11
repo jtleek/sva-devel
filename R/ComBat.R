@@ -39,7 +39,7 @@
 #' 
 
 ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
-                    mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam()) {
+                    mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam("SerialParam")) {
   # make batch a factor and make a set of indicators for batch
   if(mean.only==TRUE){cat("Using the 'mean only' version of ComBat\n")}
   if(length(dim(batch))>1){stop("This version of ComBat only allows one batch variable")}  ## to be updated soon!
