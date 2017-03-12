@@ -111,7 +111,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ##Standardize Data across genes
     cat('Standardizing Data across genes\n')
     if (!NAs){
-        B.hat <- solve(t(design) %*% design) %*% t(design) %*% t(as.matrix(dat)) # FIXME
+        B.hat <- tcrossprod(tcrossprod(solve(crossprod(design)), design), as.matrix(dat))
     } else { 
         B.hat <- apply(dat, 1, Beta.NA, design) # FIXME
     }
@@ -120,41 +120,41 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     if(!is.null(ref.batch)){
         grand.mean <- t(B.hat[ref, ])
     } else {
-        grand.mean <- t(n.batches/n.array)%*%B.hat[1:n.batch,] # FIXME
+        grand.mean <- crossprod(n.batches/n.array, B.hat[1:n.batch,])
     }
   
     ## change var.pooled for ref batch
     if (!NAs){
         if(!is.null(ref.batch)) {
             ref.dat <- dat[, batches[[ref]]]
-            var.pooled <- ((ref.dat-t(design[batches[[ref]], ]%*%B.hat))^2)%*%rep(1/n.batches[ref],n.batches[ref]) # FIXME
+            var.pooled <- ((ref.dat-t(design[batches[[ref]], ] %*% B.hat))^2) %*% rep(1/n.batches[ref],n.batches[ref]) # FIXME
         } else {
-            var.pooled <- ((dat-t(design%*%B.hat))^2)%*%rep(1/n.array,n.array) # FIXME
+            var.pooled <- ((dat-t(design %*% B.hat))^2) %*% rep(1/n.array,n.array) # FIXME
         }
     } else {
         if(!is.null(ref.batch)) {
             ref.dat <- dat[, batches[[ref]]]
-            var.pooled <- apply(ref.dat-t(design[batches[[ref]], ]%*%B.hat),1,var,na.rm=TRUE) # FIXME
+            var.pooled <- rowVars(ref.dat-t(design[batches[[ref]], ]%*%B.hat), na.rm=TRUE)
         } else {
-            var.pooled <- apply(dat-t(design%*%B.hat),1,var,na.rm=TRUE) # FIXME
+            var.pooled <- rowVars(dat-t(design %*% B.hat), na.rm=TRUE)
         }
     }
   
-    stand.mean <- t(grand.mean)%*%t(rep(1,n.array)) # FIXME
+    stand.mean <- t(grand.mean) %*% t(rep(1,n.array)) # FIXME
     if(!is.null(design)){
         tmp <- design
         tmp[,c(1:n.batch)] <- 0
-        stand.mean <- stand.mean+t(tmp%*%B.hat) #FIXME
+        stand.mean <- stand.mean+t(tmp %*% B.hat) #FIXME
     }  
-    s.data <- (dat-stand.mean)/(sqrt(var.pooled)%*%t(rep(1,n.array))) # FIXME
+    s.data <- (dat-stand.mean)/(sqrt(var.pooled) %*% t(rep(1,n.array))) # FIXME
   
     ##Get regression batch effect parameters
     message("Fitting L/S model and finding priors")
     batch.design <- design[, 1:n.batch]
     if (!NAs){
-    gamma.hat <- solve(t(batch.design)%*%batch.design)%*%t(batch.design)%*%t(as.matrix(s.data)) # FIXME
+        gamma.hat <- tcrossprod(tcrossprod(solve(crossprod(batch.design)), batch.design), as.matrix(s.data))
     } else{
-        gamma.hat=apply(s.data, 1, Beta.NA, batch.design) # FIXME
+        gamma.hat <- apply(s.data, 1, Beta.NA, batch.design) # FIXME
     
     }
     delta.hat <- NULL
@@ -162,17 +162,17 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
         if(mean.only==TRUE) {
             delta.hat <- rbind(delta.hat,rep(1,nrow(s.data))) 
         } else {
-            delta.hat <- rbind(delta.hat,apply(s.data[,i], 1, var,na.rm=TRUE)) # FIXME
+            delta.hat <- rbind(delta.hat, rowVars(s.data[,i], na.rm=TRUE))
         }
     }
   
     ##Find Priors
-    gamma.bar <- apply(gamma.hat, 1, mean) # FIXME
-    t2 <- apply(gamma.hat, 1, var) # FIXME
+    gamma.bar <- rowMeans(gamma.hat)
+    t2 <- rowVars(gamma.hat)
     a.prior <- apply(delta.hat, 1, aprior) # FIXME
     b.prior <- apply(delta.hat, 1, bprior) # FIXME
   
-    ##Plot empirical and parametric priors
+    ## Plot empirical and parametric priors
   
     if (prior.plots & par.prior){
         par(mfrow=c(2,2))
