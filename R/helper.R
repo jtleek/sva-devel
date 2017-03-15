@@ -17,7 +17,7 @@ edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
 
 	n = length(p)
 	transf = match.arg(transf)
-	
+
 	if(transf=="probit") {
 		p = pmax(p, eps)
 		p = pmin(p, 1-eps)
@@ -27,7 +27,7 @@ edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
 		y = predict(mys, x)$y
 		lfdr = pi0*dnorm(x)/y
 	}
-	
+
 	if(transf=="logit") {
 		x = log((p+eps)/(1-p+eps))
 		myd = density(x, adjust=adj)
@@ -36,14 +36,14 @@ edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
 		dx = exp(x)/(1+exp(x))^2
 		lfdr = pi0*dx/y
 	}
-	
+
 	if(trunc) {lfdr[lfdr > 1] = 1}
-	if(monotone) {	
+	if(monotone) {
 		lfdr = lfdr[order(p)]
                 lfdr = mono(lfdr)
 		lfdr = lfdr[rank(p)]
 	}
-	
+
 	return(lfdr)
 }
 
@@ -63,6 +63,14 @@ bprior <- function(gamma.hat){m=mean(gamma.hat); s2=var(gamma.hat); (m*s2+m^3)/s
 postmean <- function(g.hat,g.bar,n,d.star,t2){(t2*n*g.hat+d.star*g.bar)/(t2*n+d.star)}
 postvar <- function(sum2,n,a,b){(.5*sum2+b)/(n/2+a-1)}
 
+# Inverse gamma distribution density function. (Note: does not do any bounds checking on arguments)
+dinvgamma <- function (x, shape, rate = 1/scale, scale = 1) {
+    # PDF taken from https://en.wikipedia.org/wiki/Inverse-gamma_distribution
+    # Note: alpha = shape, beta = rate
+    stopifnot(shape > 0)
+    stopifnot(rate > 0)
+    ifelse(x <= 0, 0, ((rate ^ shape) / gamma(shape)) * x ^ (-shape - 1) * exp(-rate/x))
+}
 
 # Pass in entire data set, the design matrix for the entire data, the batch means, the batch variances, priors (m, t2, a, b), columns of the data  matrix for the batch. Uses the EM to find the parametric batch adjustments
 
@@ -96,7 +104,7 @@ int.eprior <- function(sdat,g.hat,d.hat){
 	r <- nrow(sdat)
 	for(i in 1:r){
 		g <- g.hat[-i]
-		d <- d.hat[-i]		
+		d <- d.hat[-i]
 		x <- sdat[i,!is.na(sdat[i,])]
 		n <- length(x)
 		j <- numeric(n)+1
@@ -111,8 +119,8 @@ int.eprior <- function(sdat,g.hat,d.hat){
 		}
 	adjust <- rbind(g.star,d.star)
 	rownames(adjust) <- c("g.star","d.star")
-	adjust	
-	} 
+	adjust
+	}
 
 #fits the L/S model in the presence of missing data values
 
