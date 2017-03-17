@@ -82,6 +82,14 @@ postvar <- function(sum2,n,a,b){
     (.5*sum2 + b) / (n/2 + a - 1)
 }
 
+# Inverse gamma distribution density function. (Note: does not do any bounds checking on arguments)
+dinvgamma <- function (x, shape, rate = 1/scale, scale = 1) {
+    # PDF taken from https://en.wikipedia.org/wiki/Inverse-gamma_distribution
+    # Note: alpha = shape, beta = rate
+    stopifnot(shape > 0)
+    stopifnot(rate > 0)
+    ifelse(x <= 0, 0, ((rate ^ shape) / gamma(shape)) * x ^ (-shape - 1) * exp(-rate/x))
+}
 
 # Pass in entire data set, the design matrix for the entire data, the batch means, the batch variances, priors (m, t2, a, b), columns of the data  matrix for the batch. Uses the EM to find the parametric batch adjustments
 
@@ -143,5 +151,3 @@ Beta.NA <- function(y,X){
     B <- tcrossprod(solve(crossprod(des)), des) %*% y1
     B
 }
-
-
