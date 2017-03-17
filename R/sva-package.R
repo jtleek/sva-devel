@@ -24,6 +24,7 @@
 #' 
 #' @import genefilter
 #' @import mgcv
+#' @import matrixStats
 #' 
 #' @useDynLib sva, .registration = TRUE
 NULL
