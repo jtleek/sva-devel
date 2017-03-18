@@ -1,42 +1,42 @@
 #' Adjust for batch effects using an empirical Bayes framework
-#' 
-#' ComBat allows users to adjust for batch effects in datasets where the batch covariate is known, using methodology 
-#' described in Johnson et al. 2007. It uses either parametric or non-parametric empirical Bayes frameworks for adjusting data for 
+#'
+#' ComBat allows users to adjust for batch effects in datasets where the batch covariate is known, using methodology
+#' described in Johnson et al. 2007. It uses either parametric or non-parametric empirical Bayes frameworks for adjusting data for
 #' batch effects.  Users are returned an expression matrix that has been corrected for batch effects. The input
-#' data are assumed to be cleaned and normalized before batch effect removal. 
-#' 
+#' data are assumed to be cleaned and normalized before batch effect removal.
+#'
 #' @param dat Genomic measure matrix (dimensions probe x sample) - for example, expression matrix
 #' @param batch {Batch covariate (only one batch allowed)}
 #' @param mod Model matrix for outcome of interest and other covariates besides batch
 #' @param par.prior (Optional) TRUE indicates parametric adjustments will be used, FALSE indicates non-parametric adjustments will be used
 #' @param prior.plots (Optional) TRUE give prior plots with black as a kernel estimate of the empirical batch effect density and red as the parametric
 #' @param mean.only (Optional) FALSE If TRUE ComBat only corrects the mean of the batch effect (no scale adjustment)
-#' @param ref.batch (Optional) NULL If given, will use the selected batch as a reference for batch adjustment. 
+#' @param ref.batch (Optional) NULL If given, will use the selected batch as a reference for batch adjustment.
 #' @param BPPARAM (Optional) BiocParallelParam for parallel operation
 #'
 #' @return data A probe x sample genomic measure matrix, adjusted for batch effects.
-#' 
-#' @examples 
+#'
+#' @examples
 #' library(bladderbatch)
 #' data(bladderdata)
 #' dat <- bladderEset[1:50,]
-#' 
+#'
 #' pheno = pData(dat)
 #' edata = exprs(dat)
 #' batch = pheno$batch
 #' mod = model.matrix(~as.factor(cancer), data=pheno)
-#' 
+#'
 #' # parametric adjustment
 #' combat_edata1 = ComBat(dat=edata, batch=batch, mod=NULL, par.prior=TRUE, prior.plots=FALSE)
-#' 
+#'
 #' # non-parametric adjustment, mean-only version
 #' combat_edata2 = ComBat(dat=edata, batch=batch, mod=NULL, par.prior=FALSE, mean.only=TRUE)
-#' 
+#'
 #' # reference-batch version, with covariates
 #' combat_edata3 = ComBat(dat=edata, batch=batch, mod=mod, par.prior=TRUE, ref.batch=3)
-#' 
+#'
 #' @export
-#' 
+#'
 
 ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
                     mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam("SerialParam")) {
@@ -172,27 +172,36 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     b.prior <- apply(delta.hat, 1, bprior) # FIXME
   
     ## Plot empirical and parametric priors
-  
-    if (prior.plots & par.prior){
+
+    if (prior.plots && par.prior) {
         par(mfrow=c(2,2))
+        
+        ## Top left
         tmp <- density(gamma.hat[1,])
-        plot(tmp,  type='l', main="Density Plot")
+        plot(tmp,  type='l', main=expression(paste("Density Plot of First Batch ",  hat(gamma))))
         xx <- seq(min(tmp$x), max(tmp$x), length=100)
         lines(xx,dnorm(xx,gamma.bar[1],sqrt(t2[1])), col=2)
-        qqnorm(gamma.hat[1,])
+        
+        ## Top Right
+        qqnorm(gamma.hat[1,], main=expression(paste("Normal Q-Q Plot of First Batch ", hat(gamma))))
         qqline(gamma.hat[1,], col=2)
-
+        
+        ## Bottom Left
         tmp <- density(delta.hat[1,])
         xx <- seq(min(tmp$x), max(tmp$x), length=100)
-        tmp1 <- list(x=xx, y=dgamma(xx, a.prior[1], b.prior[1]))
-        plot(tmp, typ="l", main="Density Plot", ylim=c(0, max(tmp$y, tmp1$y)))
+        tmp1 <- list(x=xx, y=dinvgamma(xx, a.prior[1], b.prior[1]))
+        plot(tmp, typ="l", ylim=c(0, max(tmp$y, tmp1$y)),
+             main=expression(paste("Density Plot of First Batch ", hat(delta))))
         lines(tmp1, col=2)
-        invgam <- 1/qgamma(ppoints(ncol(delta.hat)), a.prior[1], b.prior[1])
-        qqplot(delta.hat[1,], invgam, xlab="Sample Quantiles", ylab="Theoretical Quantiles")
+
+        ## Bottom Right
+        invgam <- 1/qgamma(1-ppoints(ncol(delta.hat)), a.prior[1], b.prior[1])
+        qqplot(invgam, delta.hat[1,],
+               main=expression(paste("Inverse Gamma Q-Q Plot of First Batch ", hat(delta))),
+               ylab="Sample Quantiles", xlab="Theoretical Quantiles")
         lines(c(0, max(invgam)), c(0, max(invgam)), col=2)
-        title("Q-Q Plot")
     }
-  
+      
     ## Find EB batch adjustments
 
     gamma.star <- delta.star <- matrix(NA, nrow=n.batch, ncol=nrow(s.data))
