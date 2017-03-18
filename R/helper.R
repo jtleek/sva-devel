@@ -93,7 +93,7 @@ it.sol  <- function(sdat,g.hat,d.hat,g.bar,t2,a,b,conv=.0001){
     count <- 0
     while(change>conv){
         g.new <- postmean(g.hat, g.bar, n, d.old, t2)
-        sum2 <- rowSums((sdat-g.new%*%t(rep(1,ncol(sdat))))^2, na.rm=TRUE)
+        sum2 <- rowSums((sdat - g.new %*% t(rep(1,ncol(sdat))))^2, na.rm=TRUE)
         d.new <- postvar(sum2, n, a, b)
         change <- max(abs(g.new-g.old) / g.old, abs(d.new-d.old) / d.old)
         g.old <- g.new
@@ -140,7 +140,7 @@ int.eprior <- function(sdat, g.hat, d.hat){
 Beta.NA <- function(y,X){
     des <- X[!is.na(y),]
     y1 <- y[!is.na(y)]
-    B <- tcrossprod(solve(crossprod(des)), des) %*% y1
+    B <- solve(crossprod(des), crossprod(des, y1))
     B
 }
 
