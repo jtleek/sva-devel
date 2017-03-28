@@ -42,6 +42,6 @@ ssva <- function(dat,controls,n.sv){
   allZero = rowMeans(dats==0) == 1
   dats = dats[!allZero,]
   ss = svd((dats - rowMeans(dats)))
-  sv = ss$v[,1:n.sv]
+  sv = ss$v[,1:n.sv, drop=FALSE]
   return(list(sv=sv,pprob.gam = controls, pprob.b=NULL,n.sv=n.sv))
 }
