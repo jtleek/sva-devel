@@ -41,7 +41,7 @@ twostepsva.build <- function(dat, mod, n.sv){
   uu <- svd(res)
   ndf <- n - ceiling(sum(diag(H)))
   dstat <-  uu$d[1:ndf]^2/sum(uu$d[1:ndf]^2)
-  res.sv <- as.matrix(uu$v[,1:n.sv])
+  res.sv <- uu$v[,1:n.sv, drop=FALSE]
   
   use.var <- matrix(rep(FALSE, n.sv*m), ncol=n.sv)
   pp <- matrix(rep(FALSE, n.sv*m), ncol=n.sv)

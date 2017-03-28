@@ -68,7 +68,7 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv,B=5) {
     cat(paste(i," "))
   }
   
-  sv = svd(dats)$v[,1:n.sv]
+  sv = svd(dats)$v[,1:n.sv, drop=FALSE]
   retval <- list(sv=sv,pprob.gam = pprob.gam, pprob.b=pprob.b,n.sv=n.sv)
   return(retval)
   

@@ -37,11 +37,17 @@ ssva <- function(dat,controls,n.sv){
   if(is.null(n.sv)){stop("ssva error: You must specify the number of surrogate variables")}
   if(dim(dat)[1] != length(controls)){stop("ssva error: You must specify a control vector the same length as the number of genes.")}
   if(any(controls > 1) | any(controls < 0)){stop("ssva error: Control probabilities must be between 0 and 1.")}
-  
+
+  if (n.sv == 0) {
+    warning("Returning zero surrogate variables as requested")
+    return(list(sv=matrix(nrow=ncol(dat), ncol=0),
+                pprob.gam = controls, pprob.b=NULL, n.sv=0))
+  }
+
   dats <- dat*controls
   allZero = rowMeans(dats==0) == 1
   dats = dats[!allZero,]
   ss = svd((dats - rowMeans(dats)))
-  sv = ss$v[,1:n.sv]
+  sv = ss$v[,1:n.sv, drop=FALSE]
   return(list(sv=sv,pprob.gam = controls, pprob.b=NULL,n.sv=n.sv))
 }
