@@ -51,7 +51,13 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
     ind = which(rank(-tmpv) <= vfilter)
     dat = dat[ind,]
   }
-  
+
+  if (!is.null(n.sv) && n.sv == 0) {
+    warning("Returning zero surrogate variables as requested")
+    return(list(sv=matrix(nrow=ncol(dat), ncol=0),
+                pprob.gam = rep(0, nrow(dat)), pprob.b=NULL, n.sv=0))
+  }
+
   if(is.null(n.sv)){
     n.sv = num.sv(dat,mod,method=numSVmethod,vfilter=vfilter)
   }
@@ -69,7 +75,9 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
       return(ssva(dat,controls,n.sv))
     }
   }else{
-    cat("No significant surrogate variables\n"); return(list(sv=0,pprob.gam=0,pprob.b=0,n.sv=0))
+    cat("No significant surrogate variables\n");
+    return(list(sv=matrix(nrow=ncol(dat), ncol=0),
+                pprob.gam = rep(0, nrow(dat)), pprob.b=NULL, n.sv=0))
   }
 
 }
