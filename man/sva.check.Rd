@@ -48,4 +48,3 @@ svobj = sva(edata,mod,mod0,n.sv=n.sv)
 svacheckobj = sva.check(svobj,edata,mod,mod0)
 
 }
-

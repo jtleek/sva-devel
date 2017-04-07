@@ -4,6 +4,7 @@
 \name{sva}
 \alias{sva}
 \alias{sva-package}
+\alias{sva}
 \title{sva: a package for removing artifacts from microarray and sequencing data}
 \usage{
 sva(dat, mod, mod0 = NULL, n.sv = NULL, controls = NULL,
@@ -66,9 +67,6 @@ n.sv = num.sv(edata,mod,method="leek")
 svobj = sva(edata,mod,mod0,n.sv=n.sv)
 
 }
-\author{
-Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey, Yuqing Zhang
-}
 \references{
 For the package: Leek JT, Johnson WE, Parker HS, Jaffe AE, and Storey JD. (2012) The sva package for removing batch effects and other unwanted variation in high-throughput experiments. Bioinformatics DOI:10.1093/bioinformatics/bts034
 
@@ -84,4 +82,6 @@ For fsva: Parker HS, Bravo HC, Leek JT (2013) Removing batch effects for predict
 
 For psva: Parker HS, Leek JT, Favorov AV, Considine M, Xia X, Chavan S, Chung CH, Fertig EJ (2014) Preserving biological heterogeneity with a permuted surrogate variable analysis for genomics batch correction Bioinformatics doi: 10.1093/bioinformatics/btu375
 }
-
+\author{
+Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey, Yuqing Zhang
+}

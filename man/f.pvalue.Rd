@@ -36,4 +36,3 @@ pValues = f.pvalue(edata,mod,mod0)
 qValues = p.adjust(pValues,method="BH")
 
 }
-

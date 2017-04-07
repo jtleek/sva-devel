@@ -56,4 +56,3 @@ degCovAdj2 = read.degradation.matrix(
 head(degCovAdj2)
 
 }
-

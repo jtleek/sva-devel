@@ -40,4 +40,3 @@ n.sv = num.sv(edata,mod,method="leek")
 pcontrol <- empirical.controls(edata,mod,mod0=NULL,n.sv=n.sv,type="norm")
 
 }
-

@@ -43,4 +43,3 @@ n.sv = num.sv(edata,mod,method="leek")
 res <- irwsva.build(edata, mod, mod0 = NULL,n.sv) 
 
 }
-

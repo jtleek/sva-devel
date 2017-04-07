@@ -43,4 +43,3 @@ n.sv = num.sv(edata,mod,method="leek")
 svatwostep <- twostepsva.build(edata,mod,n.sv)
 
 }
-

@@ -62,4 +62,3 @@ mytrainSv = pamr.train(mydataSv)
 table(pamr.predict(mytrainSv,fsvaobj$new,threshold=1),testPheno$cancer)
 
 }
-

@@ -40,4 +40,3 @@ psva_data <- psva(edata,batch.fac)
 \author{
 Elana J. Fertig
 }
-

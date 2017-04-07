@@ -35,4 +35,3 @@ mod0 = model.matrix(~1,data=pheno)
 fs <- fstats(edata, mod, mod0)
 
 }
-

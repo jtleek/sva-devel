@@ -41,4 +41,3 @@ mod = model.matrix(~as.factor(cancer), data=pheno)
 n.sv = num.sv(edata,mod,method="leek")
 
 }
-
