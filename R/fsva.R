@@ -71,15 +71,19 @@ fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
       WX <- wts*dbdat
       svd.wx = svd(t(scale(t(WX),scale=FALSE)))
       D <- svd.wx$d[1:n.sv]
-      U <- svd.wx$u[,1:n.sv]
+      U <- svd.wx$u[,1:n.sv, drop=FALSE]
       P <- t(wts*t(1/D * t(U)))
       newV <- P %*% newdat
       sgn = rep(NA,n.sv)
       for(j in 1:sv$n.sv){
+        # This code should continue working with drop=FALSE since
+        # matrices are also vectors. Remove the else once there's no
+        # more concern about backward-compatibility with sva objects
+        # from previous versions.
         if(sv$n.sv>1){
           sgn[j] = sign(cor(svd.wx$v[1:ndb,j],sv$sv[1:ndb,j]))
         }
-        if(sv$n.sv==1){
+        else if(sv$n.sv==1){
           sgn[j] = sign(cor(svd.wx$v[1:ndb,j],sv$sv[1:ndb]))
         }
       }
@@ -97,10 +101,14 @@ fsva <- function(dbdat,mod,sv,newdat=NULL,method=c("fast","exact")){
         ss = svd(t(scale(t(tmpd),scale=FALSE)))
         sgn = rep(NA,sv$n.sv)
         for(j in 1:sv$n.sv){
+          # This code should continue working with drop=FALSE since
+          # matrices are also vectors. Remove the else once there's no
+          # more concern about backward-compatibility with sva objects
+          # from previous versions.
           if(sv$n.sv>1){
             sgn[j] = sign(cor(ss$v[1:ndb,j],sv$sv[1:ndb,j]))
           }
-          if(sv$n.sv==1){
+          else if(sv$n.sv==1){
             sgn[j] = sign(cor(ss$v[1:ndb,j],sv$sv[1:ndb]))
           }
         }

@@ -32,6 +32,8 @@ Depends:
     mgcv,
     genefilter,
   	BiocParallel
+Imports:
+    matrixStats
 Suggests:
     limma,
     pamr,

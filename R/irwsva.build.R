@@ -31,24 +31,23 @@
 #' 
 
 irwsva.build <- function(dat, mod, mod0 = NULL,n.sv) {
-
-  n <- ncol(dat)
-  m <- nrow(dat)
-  if(is.null(mod0)){mod0 <- mod[,1]}
-  Id <- diag(n)
-  resid <- dat %*% (Id - mod %*% solve(t(mod) %*% mod) %*% t(mod))  
-  uu <- eigen(t(resid)%*%resid)
-  vv <- uu$vectors
-  ndf <- n - dim(mod)[2]
-  
-  pprob <- rep(1,m)
-  one <- rep(1,n)
-  Id <- diag(n)
-  df1 <- dim(mod)[2] + n.sv
-  df0 <- dim(mod0)[2]  + n.sv
-  dats2 <- dat
-  
-  rm(resid)
+    n <- ncol(dat)
+    m <- nrow(dat)
+    if(is.null(mod0)){mod0 <- mod[,1]}
+    Id <- diag(n)
+    resid <- dat %*% (Id - mod %*% solve(t(mod) %*% mod) %*% t(mod))  
+    uu <- eigen(t(resid)%*%resid)
+    vv <- uu$vectors
+    ndf <- n - dim(mod)[2]
+    
+    pprob <- rep(1,m)
+    one <- rep(1,n)
+    Id <- diag(n)
+    df1 <- dim(mod)[2] + n.sv
+    df0 <- dim(mod0)[2]  + n.sv
+    dats2 <- dat
+    
+    rm(resid)
 
   while(num.sv(dats2,mod,method="be") != 0){
     mod.b <- cbind(mod,uu$vectors[,1:n.sv])
@@ -68,7 +67,7 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv) {
     uu <- eigen(t(dats)%*%dats)
   }
   
-  sv = svd(dats)$v[,1:n.sv]
+  sv = svd(dats)$v[,1:n.sv, drop=FALSE]
   retval <- list(sv=sv,pprob.gam = pprob.gam, pprob.b=pprob.b,n.sv=n.sv)
   return(retval)
   
