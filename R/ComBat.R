@@ -111,7 +111,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ##Standardize Data across genes
     cat('Standardizing Data across genes\n')
     if (!NAs){
-        B.hat <- solve(crossprod(design), crossprod(design, as.matrix(dat)))
+        B.hat <- solve(crossprod(design), tcrossprod(t(design), as.matrix(dat)))
     } else { 
         B.hat <- apply(dat, 1, Beta.NA, design) # FIXME
     }
@@ -152,7 +152,8 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     message("Fitting L/S model and finding priors")
     batch.design <- design[, 1:n.batch]
     if (!NAs){
-        gamma.hat <- solve(crossprod(batch.design), crossprod(batch.design, as.matrix(s.data)))
+      gamma.hat <- solve(crossprod(batch.design), tcrossprod(t(batch.design),
+                                                             as.matrix(s.data)))
     } else{
         gamma.hat <- apply(s.data, 1, Beta.NA, batch.design) # FIXME
     }
@@ -168,7 +169,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ##Find Priors
     gamma.bar <- rowMeans(gamma.hat)
     t2 <- rowVars(gamma.hat)
-    a.prior <- apply(delta.hat, 1, aprior) # FIXME
+    a.prior <- apply(delta.hat, 1, aprior) # FIXME 
     b.prior <- apply(delta.hat, 1, bprior) # FIXME
   
     ## Plot empirical and parametric priors

@@ -1,3 +1,5 @@
+library(BiocParallel) 
+
 sva.class2Model <- function(classes) {
   return(model.matrix(~factor(classes)))
 }
