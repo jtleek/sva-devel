@@ -13,10 +13,11 @@ mono <- function(lfdr){
     .Call("monotone", as.numeric(lfdr), PACKAGE="sva")
 }
 
-edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"), adj=1.5, eps=10^-8, lambda=0.8, ...) {
+edge.lfdr <- function(p, trunc=TRUE, monotone=TRUE, transf=c("probit", "logit"),
+                      adj=1.5, eps=10^-8, lambda=0.8, ...) {
     pi0 <- mean(p >= lambda)/(1 - lambda)
     pi0 <- min(pi0, 1)
-    
+
     n <- length(p)
     transf <- match.arg(transf)
     
@@ -103,7 +104,7 @@ it.sol  <- function(sdat,g.hat,d.hat,g.bar,t2,a,b,conv=.0001){
     count <- 0
     while(change>conv){
         g.new <- postmean(g.hat, g.bar, n, d.old, t2)
-        sum2 <- rowSums((sdat - g.new %*% t(rep(1,ncol(sdat))))^2, na.rm=TRUE)
+        sum2 <- rowSums((sdat - crossprod(g.new, t(rep(1,ncol(sdat)))))^2, na.rm=TRUE)
         d.new <- postvar(sum2, n, a, b)
         change <- max(abs(g.new-g.old) / g.old, abs(d.new-d.old) / d.old)
         g.old <- g.new
@@ -118,7 +119,7 @@ it.sol  <- function(sdat,g.hat,d.hat,g.bar,t2,a,b,conv=.0001){
 
 ## likelihood function used below
 L <- function(x,g.hat,d.hat){
-    prod(dnorm(x, g.hat, sqrt(d.hat)))
+    exp(sum(dnorm(x, g.hat, sqrt(d.hat), log=TRUE)))
 }
 
 ## Monte Carlo integration functions
@@ -127,13 +128,13 @@ int.eprior <- function(sdat, g.hat, d.hat){
     r <- nrow(sdat)
     for(i in 1:r){
         g <- g.hat[-i]
-        d <- d.hat[-i]		
+        d <- d.hat[-i]
         x <- sdat[i,!is.na(sdat[i,])]
         n <- length(x)
         j <- numeric(n)+1
         dat <- matrix(as.numeric(x), length(g), n, byrow=TRUE)
         resid2 <- (dat-g)^2
-        sum2 <- resid2 %*% j
+        sum2 <- crossprod(resid2, j)
         LH <- 1/(2*pi*d)^(n/2)*exp(-sum2/(2*d))
         LH[LH=="NaN"]=0
         g.star <- c(g.star, sum(g*LH)/sum(LH))
@@ -142,7 +143,7 @@ int.eprior <- function(sdat, g.hat, d.hat){
     }
     adjust <- rbind(g.star,d.star)
     rownames(adjust) <- c("g.star","d.star")
-    adjust	
+    adjust
 } 
 
 ## fits the L/S model in the presence of missing data values
