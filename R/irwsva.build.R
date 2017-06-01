@@ -67,7 +67,7 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv) {
     dats2 <- dats2 - rowMeans(dats2)
     uu <- eigen(t(dats)%*%dats)
     z <- z+1
-    if(z>100){
+    if(z>10){
       break
     }
   }
