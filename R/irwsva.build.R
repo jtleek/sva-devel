@@ -48,6 +48,7 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv) {
     dats2 <- dat
     
     rm(resid)
+    z <- 0
 
   while(num.sv(dats2,mod,method="be") != 0){
     mod.b <- cbind(mod,uu$vectors[,1:n.sv])
@@ -65,6 +66,10 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv) {
     dats2 <- dat*pprob.b*(1-pprob.gam)
     dats2 <- dats2 - rowMeans(dats2)
     uu <- eigen(t(dats)%*%dats)
+    z <- z+1
+    if(z>100){
+      break
+    }
   }
   
   sv = svd(dats)$v[,1:n.sv, drop=FALSE]
