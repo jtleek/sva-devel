@@ -1,3 +1,4 @@
+
 #' A function for quickly calculating f statistic p-values for use in sva
 #' 
 #' This function does simple linear algebra to calculate f-statistics
@@ -10,6 +11,20 @@
 #' @param mod0 The null model being compared when fitting the data
 #' 
 #' @return p A vector of F-statistic p-values one for each row of dat. 
+#' 
+#' @examples 
+#' library(bladderbatch)
+#' data(bladderdata)
+#' dat <- bladderEset[1:50,]
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' mod = model.matrix(~as.factor(cancer), data=pheno)
+#' mod0 = model.matrix(~1,data=pheno)
+#' 
+#' pValues = f.pvalue(edata,mod,mod0)
+#' qValues = p.adjust(pValues,method="BH")
+#' 
 #' @export
 #' 
 

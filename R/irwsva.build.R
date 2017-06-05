@@ -16,6 +16,18 @@
 #' @return pprob.b A vector of the posterior probabilities each gene is affected by mod
 #' @return n.sv The number of significant surrogate variables
 #' 
+#' @examples 
+#' library(bladderbatch)
+#' data(bladderdata)
+#' dat <- bladderEset[1:5000,]
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' mod = model.matrix(~as.factor(cancer), data=pheno)
+#' 
+#' n.sv = num.sv(edata,mod,method="leek")
+#' res <- irwsva.build(edata, mod, mod0 = NULL,n.sv,B=5) 
+#' 
 #' @export
 #' 
 
@@ -56,7 +68,7 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv,B=5) {
     cat(paste(i," "))
   }
   
-  sv = svd(dats)$v[,1:n.sv]
+  sv = svd(dats)$v[,1:n.sv, drop=FALSE]
   retval <- list(sv=sv,pprob.gam = pprob.gam, pprob.b=pprob.b,n.sv=n.sv)
   return(retval)
   
