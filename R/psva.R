@@ -52,5 +52,5 @@ psva <- function(dat, batch, ...) {
                     t(psva.SV$sv), 1, psva.fit$coefficients[,"(Intercept)"], FUN="+")
   
   return(psva.D)
-  
+
 }

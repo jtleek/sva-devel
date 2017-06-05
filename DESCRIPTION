@@ -44,4 +44,4 @@ Suggests:
 License: Artistic-2.0
 biocViews: Microarray, StatisticalMethod, Preprocessing,
     MultipleComparison, Sequencing, RNASeq, BatchEffect, Normalization
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

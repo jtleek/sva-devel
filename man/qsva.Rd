@@ -9,7 +9,7 @@ qsva(degradationMatrix, mod = matrix(1, nc = 1, nr = ncol(degradationMatrix)))
 \arguments{
 \item{degradationMatrix}{the normalized degradation matrix, region by sample}
 
-\item{mod:}{optional, statistical model used in DE analysis}
+\item{mod}{(Optional) statistical model used in DE analysis}
 }
 \value{
 the qSV adjustment variables
@@ -28,4 +28,3 @@ degCovAdj = read.degradation.matrix(
 qsva(degCovAdj)
 
 }
-

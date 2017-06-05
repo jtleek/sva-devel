@@ -61,4 +61,3 @@ svseq = svaseq(dat0,mod1,mod0,n.sv=1)$sv
 plot(svseq,pch=19,col="blue")
 
 }
-

@@ -6,7 +6,7 @@
 \usage{
 read.degradation.matrix(covFiles, sampleNames, totalMapped, readLength = 100,
   normFactor = 8e+07, type = c("bwtool", "region_matrix_single",
-  "region_matrix_all"), mc.cores = 1)
+  "region_matrix_all"), BPPARAM = bpparam())
 }
 \arguments{
 \item{covFiles}{coverage file(s) for degradation regions}
@@ -20,6 +20,8 @@ read.degradation.matrix(covFiles, sampleNames, totalMapped, readLength = 100,
 \item{normFactor}{common library size to normalize to; 80M reads as default}
 
 \item{type}{whether input are individual `bwtool` output, `region_matrix` run on individual samples, or `region_matrix` run on all samples together}
+
+\item{BPPARAM}{(Optional) BiocParallelParam for parallel operation}
 }
 \value{
 the normalized degradation matrix, region by sample
@@ -54,4 +56,3 @@ degCovAdj2 = read.degradation.matrix(
 head(degCovAdj2)
 
 }
-

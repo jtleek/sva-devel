@@ -5,7 +5,7 @@
 \title{Adjust for batch effects using an empirical Bayes framework}
 \usage{
 ComBat(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
-  mean.only = FALSE, ref.batch = NULL)
+  mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam("SerialParam"))
 }
 \arguments{
 \item{dat}{Genomic measure matrix (dimensions probe x sample) - for example, expression matrix}
@@ -21,13 +21,15 @@ ComBat(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
 \item{mean.only}{(Optional) FALSE If TRUE ComBat only corrects the mean of the batch effect (no scale adjustment)}
 
 \item{ref.batch}{(Optional) NULL If given, will use the selected batch as a reference for batch adjustment.}
+
+\item{BPPARAM}{(Optional) BiocParallelParam for parallel operation}
 }
 \value{
 data A probe x sample genomic measure matrix, adjusted for batch effects.
 }
 \description{
-ComBat allows users to adjust for batch effects in datasets where the batch covariate is known, using methodology 
-described in Johnson et al. 2007. It uses either parametric or non-parametric empirical Bayes frameworks for adjusting data for 
+ComBat allows users to adjust for batch effects in datasets where the batch covariate is known, using methodology
+described in Johnson et al. 2007. It uses either parametric or non-parametric empirical Bayes frameworks for adjusting data for
 batch effects.  Users are returned an expression matrix that has been corrected for batch effects. The input
 data are assumed to be cleaned and normalized before batch effect removal.
 }
@@ -51,4 +53,3 @@ combat_edata2 = ComBat(dat=edata, batch=batch, mod=NULL, par.prior=FALSE, mean.o
 combat_edata3 = ComBat(dat=edata, batch=batch, mod=mod, par.prior=TRUE, ref.batch=3)
 
 }
-

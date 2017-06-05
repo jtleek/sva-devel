@@ -79,5 +79,4 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
   }else{
     cat("No significant surrogate variables\n"); return(list(sv=0,pprob.gam=0,pprob.b=0,n.sv=0))
   }
-
 }

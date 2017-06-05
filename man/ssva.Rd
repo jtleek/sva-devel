@@ -44,4 +44,3 @@ controls <- runif(nrow(edata))
 ssva_res <- ssva(edata,controls,n.sv)
 
 }
-

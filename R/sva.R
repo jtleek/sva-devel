@@ -79,5 +79,4 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
     return(list(sv=matrix(nrow=ncol(dat), ncol=0),
                 pprob.gam = rep(0, nrow(dat)), pprob.b=NULL, n.sv=0))
   }
-
 }
