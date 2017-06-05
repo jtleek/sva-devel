@@ -19,11 +19,12 @@
 #' @references For psva: Parker HS, Leek JT, Favorov AV, Considine M, Xia X, Chavan S, Chung CH, Fertig EJ (2014) Preserving biological heterogeneity with a permuted surrogate variable analysis for genomics batch correction Bioinformatics doi: 10.1093/bioinformatics/btu375
 #' 
 #' @docType package
-#' @author Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey
+#' @author Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey, Yuqing Zhang
 #' @name sva
 #' 
-#' @importFrom genefilter rowVars
+#' @import genefilter
 #' @import mgcv
+#' @import matrixStats
 #' 
-#' @useDynLib sva monotone
+#' @useDynLib sva, .registration = TRUE
 NULL

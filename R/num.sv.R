@@ -14,6 +14,17 @@
 #' 
 #' @return n.sv The number of surrogate variables to use in the sva software
 #' 
+#' @examples 
+#' library(bladderbatch)
+#' data(bladderdata)
+#' dat <- bladderEset[1:5000,]
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' mod = model.matrix(~as.factor(cancer), data=pheno)
+#' 
+#' n.sv = num.sv(edata,mod,method="leek")
+#' 
 #' @export
 #' 
 num.sv <- function(dat, mod,method=c("be","leek"),vfilter=NULL,B=20,seed=NULL) {  
@@ -69,7 +80,7 @@ num.sv <- function(dat, mod,method=c("be","leek"),vfilter=NULL,B=20,seed=NULL) {
       R <- dats %*% P
       wm <- (1/(j*n))*t(R) %*% R - P*sigbar
       ee <- eigen(wm)
-      v <- c(rep(T, 100), rep(F, dims[2]))
+      v <- c(rep(TRUE, 100), rep(FALSE, dims[2]))
       v <- v[order(c(a*(j*n)^(-1/3)*dims[2],ee$values), decreasing = TRUE)]
       u <- 1:length(v)
       w <- 1:100
@@ -87,4 +98,3 @@ num.sv <- function(dat, mod,method=c("be","leek"),vfilter=NULL,B=20,seed=NULL) {
     print(method)
   }
 }
-

@@ -16,6 +16,21 @@
 #' @return pprob.b A vector of the posterior probabilities each gene is affected by mod
 #' @return n.sv The number of significant surrogate variables
 #' 
+#' @examples 
+#' library(bladderbatch)
+#' data(bladderdata)
+#' #dat <- bladderEset
+#' dat <- bladderEset[1:5000,]
+#' 
+#' pheno = pData(dat)
+#' edata = exprs(dat)
+#' mod = model.matrix(~as.factor(cancer), data=pheno)
+#' mod0 = model.matrix(~1,data=pheno)
+#' 
+#' n.sv = num.sv(edata,mod,method="leek")
+#' svobj = sva(edata,mod,mod0,n.sv=n.sv)
+#' svacheckobj = sva.check(svobj,edata,mod,mod0)
+#' 
 #' @export
 #' 
 #' 
