@@ -9,18 +9,27 @@
 #'
 #' @return the qSV adjustment variables
 #'
-#' @examples 
+#' @examples
+#'
+#' ## Find files
+#' bwPath <- system.file('extdata', 'bwtool', package = 'sva')
+#'
+#' ## Read the data
 #' degCovAdj = read.degradation.matrix(
 #'  covFiles = list.files(bwPath,full.names=TRUE),
 #'  sampleNames = list.files(bwPath), readLength = 76, 
 #'  totalMapped = rep(100e6,5),type="bwtool")
+#'
+#' ## Input data
 #'  head(degCovAdj)
+#'
+#' ## Results
 #' qsva(degCovAdj)
 #'
 #' @export
 
 qsva <- function(degradationMatrix, 
-		mod = matrix(1,nc=1,nr = ncol(degradationMatrix))) {
+		mod = matrix(1, ncol=1, nrow = ncol(degradationMatrix))) {
 
 	# do PCA
 	degPca = prcomp(t(log2(degradationMatrix+1)))
@@ -29,5 +38,5 @@ qsva <- function(degradationMatrix,
 	k = num.sv(log2(degradationMatrix+1), mod)
 
 	# return qSVS
-	degPca$x[,1:k]
+	degPca$x[, seq_len(k)]
 }

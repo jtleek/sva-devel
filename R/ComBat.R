@@ -16,6 +16,11 @@
 #'
 #' @return data A probe x sample genomic measure matrix, adjusted for batch effects.
 #'
+#' @importFrom graphics lines par
+#' @importFrom stats cor density dnorm model.matrix pf ppoints prcomp predict
+#' qgamma qnorm qqline qqnorm qqplot smooth.spline var
+#' @importFrom utils read.delim
+#'
 #' @examples
 #' library(bladderbatch)
 #' data(bladderdata)
