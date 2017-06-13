@@ -14,6 +14,8 @@
 #'
 #' @return the normalized degradation matrix, region by sample
 #' 
+#' @import BiocParallel
+#'
 #' @examples 
 #' # bwtool
 #' bwPath = system.file('extdata', 'bwtool', package = 'sva')
@@ -74,8 +76,8 @@ read.degradation.matrix <- function(covFiles, sampleNames,
 	## normalize for library size and read length
 	degCovMat = degCovMat/readLength # read length
 	bg = matrix(rep(totalMapped/normFactor), 
-		nc = ncol(degCovMat), 
-		nr = nrow(degCovMat), byrow=TRUE)
+		ncol = ncol(degCovMat), 
+		nrow = nrow(degCovMat), byrow=TRUE)
 	degCovAdj = degCovMat/bg
 	
 	# return
