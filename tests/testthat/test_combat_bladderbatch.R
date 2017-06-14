@@ -14,7 +14,8 @@ test_that("check ComBat output with several different parameters on bladder canc
   # set up full and reduced models for testing
   mod = model.matrix(~as.factor(cancer), data=pheno)
   mod0 = model.matrix(~1, data=pheno)
-  
+
+
   #run ComBat without covariates:
   combat_edata = ComBat(dat=edata, batch=batch, mod=NULL, par.prior=TRUE, prior.plots=FALSE)
   pValuesComBat = f.pvalue(combat_edata,mod,mod0)
@@ -44,7 +45,6 @@ test_that("check ComBat output with several different parameters on bladder canc
   combat_edata = ComBat(dat=edata, batch=batch, mod=mod, par.prior=TRUE, prior.plots=FALSE, mean.only=TRUE)
   pValuesComBat = f.pvalue(combat_edata,mod,mod0)
   expect_equal(sum(pValuesComBat<.05),17115)
-  
   
   ######## Check reference version on bladder data in all situations above
   

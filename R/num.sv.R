@@ -98,4 +98,3 @@ num.sv <- function(dat, mod,method=c("be","leek"),vfilter=NULL,B=20,seed=NULL) {
     print(method)
   }
 }
-

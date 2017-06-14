@@ -4,7 +4,8 @@
 \alias{qsva}
 \title{A function for computing quality surrogate variables (qSVs)}
 \usage{
-qsva(degradationMatrix, mod = matrix(1, nc = 1, nr = ncol(degradationMatrix)))
+qsva(degradationMatrix, mod = matrix(1, ncol = 1, nrow =
+  ncol(degradationMatrix)))
 }
 \arguments{
 \item{degradationMatrix}{the normalized degradation matrix, region by sample}
@@ -20,11 +21,20 @@ from the library-size- and read-length-normalized
 degradation matrix for subsequent RNA quality correction
 }
 \examples{
+
+## Find files
+bwPath <- system.file('extdata', 'bwtool', package = 'sva')
+
+## Read the data
 degCovAdj = read.degradation.matrix(
  covFiles = list.files(bwPath,full.names=TRUE),
  sampleNames = list.files(bwPath), readLength = 76, 
  totalMapped = rep(100e6,5),type="bwtool")
+
+## Input data
  head(degCovAdj)
+
+## Results
 qsva(degCovAdj)
 
 }

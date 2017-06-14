@@ -9,7 +9,6 @@
 #' @param mod The model matrix being used to fit the data
 #' @param mod0 The null model being compared when fitting the data
 #' @param n.sv The number of surogate variables to estimate
-#' 
 #' @return sv The estimated surrogate variables, one in each column
 #' @return pprob.gam: A vector of the posterior probabilities each gene is affected by heterogeneity
 #' @return pprob.b A vector of the posterior probabilities each gene is affected by mod
@@ -75,5 +74,5 @@ irwsva.build <- function(dat, mod, mod0 = NULL,n.sv) {
   sv = svd(dats)$v[,1:n.sv, drop=FALSE]
   retval <- list(sv=sv,pprob.gam = pprob.gam, pprob.b=pprob.b,n.sv=n.sv)
   return(retval)
-  
 }
+

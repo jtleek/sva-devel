@@ -1,3 +1,4 @@
+
 #' A function for quickly calculating f statistic p-values for use in sva
 #' 
 #' This function does simple linear algebra to calculate f-statistics
