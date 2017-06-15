@@ -31,7 +31,7 @@
 #'  covFiles = list.files(r1Path,full.names=TRUE),
 #'  sampleNames = list.files(r1Path), readLength = 76, 
 #'  totalMapped = rep(100e6,5),type="region_matrix_single")
-#'  head(degCovAdj2)
+#'  head(degCovAdj1)
 #'  
 #' r2Path = system.file('extdata', 'region_matrix_all', package = 'sva')
 #' degCovAdj2 = read.degradation.matrix(
