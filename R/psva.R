@@ -12,7 +12,12 @@
 #'
 #' @return psva.D Data with batch effect removed but biological heterogeneity preserved
 #' 
-#' @examples 
+#' @importFrom limma lmFit
+#'
+#' @examples
+#'
+#'
+#' 
 #' library(bladderbatch)
 #' library(limma)
 #' data(bladderdata)
