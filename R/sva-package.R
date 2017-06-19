@@ -24,7 +24,7 @@
 #' 
 #' @import genefilter
 #' @import mgcv
-#' @import matrixStats
+#' @rawNamespace import(matrixStats, except = c(rowSds, rowVars))
 #' 
 #' @useDynLib sva, .registration = TRUE
 NULL
