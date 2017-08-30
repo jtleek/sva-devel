@@ -110,7 +110,7 @@ it.sol  <- function(sdat,g.hat,d.hat,g.bar,t2,a,b,conv=.0001){
         d.old <- d.new
         count <- count+1
     }
-    ## cat("This batch took", count, "iterations until convergence\n")
+    ## message("This batch took ", count, " iterations until convergence")
     adjust <- rbind(g.new, d.new)
     rownames(adjust) <- c("g.star","d.star")
     adjust
@@ -138,7 +138,7 @@ int.eprior <- function(sdat, g.hat, d.hat){
         LH[LH=="NaN"]=0
         g.star <- c(g.star, sum(g*LH)/sum(LH))
         d.star <- c(d.star, sum(d*LH)/sum(LH))
-        ## if(i%%1000==0){cat(i,'\n')}
+        ## if(i%%1000==0){message(i)}
     }
     adjust <- rbind(g.star,d.star)
     rownames(adjust) <- c("g.star","d.star")

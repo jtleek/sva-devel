@@ -39,13 +39,20 @@
 sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","two-step","supervised"),
                 vfilter=NULL,B=5, numSVmethod = "be") {
   method <- match.arg(method)
-  if(!is.null(controls) & !is.null(vfilter)){stop("sva error: if controls is provided vfilter must be NULL.\n")}
-  if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.\n")}
-  if(!is.null(controls) & (method!="supervised")){method = "supervised"; cat("sva warning: controls provided so supervised sva is being performed.\n")}
+  if(!is.null(controls) & !is.null(vfilter)){
+    stop("sva error: if controls is provided vfilter must be NULL.")
+  }
+  if((method=="supervised") & is.null(controls)){
+    stop("sva error: for a supervised analysis you must provide a vector of controls.")
+  }
+  if(!is.null(controls) & (method!="supervised")){
+    method = "supervised";
+    cat("sva warning: controls provided so supervised sva is being performed.")
+  }
   
   if(!is.null(vfilter)){
     if(vfilter < 100 | vfilter > dim(dat)[1]){
-      stop(paste("sva error: the number of genes used in the analysis must be between 100 and",dim(dat)[1],"\n"))
+      stop(paste("sva error: the number of genes used in the analysis must be between 100 and",dim(dat)[1]))
     }
     tmpv = rowVars(dat)
     ind = which(rank(-tmpv) <= vfilter)
@@ -53,7 +60,7 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
   }
 
   if (!is.null(n.sv) && n.sv == 0) {
-    warning("Returning zero surrogate variables as requested")
+    warning("Returning zero surrogate variables as requested.")
     return(list(sv=matrix(nrow=ncol(dat), ncol=0),
                 pprob.gam = rep(0, nrow(dat)), pprob.b=NULL, n.sv=0))
   }
@@ -63,8 +70,8 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
   }
   
   if(n.sv > 0){
-    cat(paste("Number of significant surrogate variables is: ",n.sv,"\n"))
- 
+    message("Number of significant surrogate variables is: ", n.sv, ".")
+
     if(method=="two-step"){
       return(twostepsva.build(dat=dat, mod=mod,n.sv=n.sv))
     }
@@ -75,7 +82,7 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
       return(ssva(dat,controls,n.sv))
     }
   }else{
-    cat("No significant surrogate variables\n");
+    message("No significant surrogate variables.");
     return(list(sv=matrix(nrow=ncol(dat), ncol=0),
                 pprob.gam = rep(0, nrow(dat)), pprob.b=NULL, n.sv=0))
   }
