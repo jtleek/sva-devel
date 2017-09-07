@@ -65,7 +65,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     } else {
         ref <- NULL
     }
-    message("Found", nlevels(batch), "batches")
+    message("Found ", nlevels(batch), " batches")
   
     ## A few other characteristics on the batches
     n.batch <- nlevels(batch)
@@ -90,7 +90,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     design <- as.matrix(design[,!check])
   
     ## Number of covariates or covariate levels
-    message("Adjusting for", ncol(design)-ncol(batchmod), 'covariate(s) or covariate level(s)')
+    message("Adjusting for ", ncol(design)-ncol(batchmod), ' covariate(s) or covariate level(s)')
   
     ## Check if the design is confounded
     if(qr(design)$rank < ncol(design)) {
@@ -110,7 +110,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ## Check for missing values
     NAs <- any(is.na(dat))
     if(NAs){
-        message(c('Found',sum(is.na(dat)),'Missing Data Values'), sep=' ')}
+        message('Found ',sum(is.na(dat)),' Missing Data Values')}
     ## print(dat[1:2,])
   
     ##Standardize Data across genes
