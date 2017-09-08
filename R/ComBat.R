@@ -65,7 +65,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     } else {
         ref <- NULL
     }
-    message("Found", nlevels(batch), "batches")
+    message("Found ", nlevels(batch), " batches")
   
     ## A few other characteristics on the batches
     n.batch <- nlevels(batch)
@@ -90,7 +90,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     design <- as.matrix(design[,!check])
   
     ## Number of covariates or covariate levels
-    message("Adjusting for", ncol(design)-ncol(batchmod), 'covariate(s) or covariate level(s)')
+    message("Adjusting for ", ncol(design)-ncol(batchmod), " covariate(s) or covariate level(s)")
   
     ## Check if the design is confounded
     if(qr(design)$rank < ncol(design)) {
@@ -100,7 +100,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
         }
         if(ncol(design)>(n.batch+1)) {
             if((qr(design[,-c(1:n.batch)])$rank<ncol(design[,-c(1:n.batch)]))){
-                stop('The covariates are confounded! Please remove one or more of the covariates so the design is not confounded')
+                stop("The covariates are confounded! Please remove one or more of the covariates so the design is not confounded")
             } else {
                 stop("At least one covariate is confounded with batch! Please remove confounded covariates and rerun ComBat")
             }
@@ -110,11 +110,12 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ## Check for missing values
     NAs <- any(is.na(dat))
     if(NAs){
-        message(c('Found',sum(is.na(dat)),'Missing Data Values'), sep=' ')}
+        message("Found ", sum(is.na(dat)), " missing data values")
+    }
     ## print(dat[1:2,])
   
     ##Standardize Data across genes
-    cat('Standardizing Data across genes\n')
+    cat("Standardizing Data across genes\n")
     if (!NAs){
         B.hat <- solve(crossprod(design), tcrossprod(t(design), as.matrix(dat)))
     } else { 
@@ -184,7 +185,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
         
         ## Top left
         tmp <- density(gamma.hat[1,])
-        plot(tmp,  type='l', main=expression(paste("Density Plot of First Batch ",  hat(gamma))))
+        plot(tmp,  type="l", main=expression(paste("Density Plot of First Batch ",  hat(gamma))))
         xx <- seq(min(tmp$x), max(tmp$x), length=100)
         lines(xx,dnorm(xx,gamma.bar[1],sqrt(t2[1])), col=2)
         
