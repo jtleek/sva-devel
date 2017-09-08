@@ -115,7 +115,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ## print(dat[1:2,])
   
     ##Standardize Data across genes
-    cat('Standardizing Data across genes\n')
+    cat("Standardizing Data across genes\n")
     if (!NAs){
         B.hat <- solve(crossprod(design), tcrossprod(t(design), as.matrix(dat)))
     } else { 
@@ -185,7 +185,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
         
         ## Top left
         tmp <- density(gamma.hat[1,])
-        plot(tmp,  type='l', main=expression(paste("Density Plot of First Batch ",  hat(gamma))))
+        plot(tmp,  type="l", main=expression(paste("Density Plot of First Batch ",  hat(gamma))))
         xx <- seq(min(tmp$x), max(tmp$x), length=100)
         lines(xx,dnorm(xx,gamma.bar[1],sqrt(t2[1])), col=2)
         
