@@ -59,7 +59,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
         if (!(ref.batch%in%levels(batch))) {
             stop("reference level ref.batch is not one of the levels of the batch variable")
         }
-        cat("Using batch =",ref.batch, "as a reference batch (this batch won't change)\n")
+        message("Using batch =",ref.batch, "as a reference batch (this batch won't change)")
         ref <- which(levels(as.factor(batch))==ref.batch) # find the reference
         batchmod[,ref] <- 1
     } else {
@@ -114,7 +114,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ## print(dat[1:2,])
   
     ##Standardize Data across genes
-    cat('Standardizing Data across genes\n')
+    message('Standardizing Data across genes')
     if (!NAs){
         B.hat <- solve(crossprod(design), tcrossprod(t(design), as.matrix(dat)))
     } else { 
