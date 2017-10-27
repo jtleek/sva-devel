@@ -180,6 +180,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ## Plot empirical and parametric priors
 
     if (prior.plots && par.prior) {
+        op <- par(no.readonly = TRUE)
         par(mfrow=c(2,2))
         
         ## Top left
@@ -206,6 +207,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
                main=expression(paste("Inverse Gamma Q-Q Plot of First Batch ", hat(delta))),
                ylab="Sample Quantiles", xlab="Theoretical Quantiles")
         lines(c(0, max(invgam)), c(0, max(invgam)), col=2)
+        par(op)
     }
       
     ## Find EB batch adjustments
