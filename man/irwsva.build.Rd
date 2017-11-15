@@ -4,7 +4,7 @@
 \alias{irwsva.build}
 \title{A function for estimating surrogate variables by estimating empirical control probes}
 \usage{
-irwsva.build(dat, mod, mod0 = NULL, n.sv, B = 5)
+irwsva.build(dat, mod, mod0 = NULL, n.sv)
 }
 \arguments{
 \item{dat}{The transformed data matrix with the variables in rows and samples in columns}
@@ -14,8 +14,6 @@ irwsva.build(dat, mod, mod0 = NULL, n.sv, B = 5)
 \item{mod0}{The null model being compared when fitting the data}
 
 \item{n.sv}{The number of surogate variables to estimate}
-
-\item{B}{The number of iterations of the irwsva algorithm to perform}
 }
 \value{
 sv The estimated surrogate variables, one in each column
@@ -42,6 +40,6 @@ edata = exprs(dat)
 mod = model.matrix(~as.factor(cancer), data=pheno)
 
 n.sv = num.sv(edata,mod,method="leek")
-res <- irwsva.build(edata, mod, mod0 = NULL,n.sv,B=5) 
+res <- irwsva.build(edata, mod, mod0 = NULL,n.sv) 
 
 }

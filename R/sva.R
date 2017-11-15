@@ -12,7 +12,6 @@
 #' @param controls A vector of probabilities (between 0 and 1, inclusive) that each gene is a control. A value of 1 means the gene is certainly a control and a value of 0 means the gene is certainly not a control.
 #' @param method For empirical estimation of control probes use "irw". If control probes are known use "supervised"
 #' @param vfilter You may choose to filter to the vfilter most variable rows before performing the analysis. vfilter must be NULL if method is "supervised"
-#' @param B The number of iterations of the irwsva algorithm to perform
 #' @param numSVmethod If n.sv is NULL, sva will attempt to estimate the number of needed surrogate variables. This should not be adapted by the user unless they are an expert. 
 #' 
 #' @return sv The estimated surrogate variables, one in each column
@@ -37,7 +36,7 @@
 #' 
 
 sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","two-step","supervised"),
-                vfilter=NULL,B=5, numSVmethod = "be") {
+                vfilter=NULL, numSVmethod = "be") {
   method <- match.arg(method)
   if(!is.null(controls) & !is.null(vfilter)){stop("sva error: if controls is provided vfilter must be NULL.\n")}
   if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.\n")}
@@ -51,25 +50,22 @@ sva <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","tw
     ind = which(rank(-tmpv) <= vfilter)
     dat = dat[ind,]
   }
-
   if (!is.null(n.sv) && n.sv == 0) {
     warning("Returning zero surrogate variables as requested")
     return(list(sv=matrix(nrow=ncol(dat), ncol=0),
                 pprob.gam = rep(0, nrow(dat)), pprob.b=NULL, n.sv=0))
   }
-
   if(is.null(n.sv)){
     n.sv = num.sv(dat,mod,method=numSVmethod,vfilter=vfilter)
   }
   
   if(n.sv > 0){
     cat(paste("Number of significant surrogate variables is: ",n.sv,"\n"))
- 
     if(method=="two-step"){
       return(twostepsva.build(dat=dat, mod=mod,n.sv=n.sv))
     }
     if(method=="irw"){
-      return(irwsva.build(dat=dat, mod=mod, mod0 = mod0,n.sv=n.sv,B=B))
+      return(irwsva.build(dat=dat, mod=mod, mod0 = mod0,n.sv=n.sv))
     }
     if(method=="supervised"){
       return(ssva(dat,controls,n.sv))

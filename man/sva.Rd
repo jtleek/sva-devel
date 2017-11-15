@@ -8,7 +8,7 @@
 \title{sva: a package for removing artifacts from microarray and sequencing data}
 \usage{
 sva(dat, mod, mod0 = NULL, n.sv = NULL, controls = NULL,
-  method = c("irw", "two-step", "supervised"), vfilter = NULL, B = 5,
+  method = c("irw", "two-step", "supervised"), vfilter = NULL,
   numSVmethod = "be")
 }
 \arguments{
@@ -25,8 +25,6 @@ sva(dat, mod, mod0 = NULL, n.sv = NULL, controls = NULL,
 \item{method}{For empirical estimation of control probes use "irw". If control probes are known use "supervised"}
 
 \item{vfilter}{You may choose to filter to the vfilter most variable rows before performing the analysis. vfilter must be NULL if method is "supervised"}
-
-\item{B}{The number of iterations of the irwsva algorithm to perform}
 
 \item{numSVmethod}{If n.sv is NULL, sva will attempt to estimate the number of needed surrogate variables. This should not be adapted by the user unless they are an expert.}
 }
