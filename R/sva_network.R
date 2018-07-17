@@ -1,11 +1,11 @@
 #' A function to adjust gene expression data before network inference
 #' 
 #' This function corrects a gene expression matrix prior to network inference by
-#' returning the residuals after regressing out the top principal components. The number 
-#' of principal components to remove can be determined using a permutation-based approach
-#' using the "num.sv" function with method = "be"
+#' returning the residuals after regressing out the top principal components. 
+#' The number of principal components to remove can be determined using a 
+#' permutation-based approach using the "num.sv" function with method = "be"
 
-#' @param dat The raw gene expression data matrix (with the variables in rows and samples in columns)
+#' @param dat The raw gene expression data matrix (with variables in rows and samples in columns)
 #' @param n.pc The number of principal components to remove 
 
 #' @return dat.adjusted Cleaned gene expression data matrix with the top prinicpal components removed
