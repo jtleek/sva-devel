@@ -59,13 +59,13 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
         if (!(ref.batch%in%levels(batch))) {
             stop("reference level ref.batch is not one of the levels of the batch variable")
         }
-        cat("Using batch =",ref.batch, "as a reference batch (this batch won't change)\n")
+        message("Using batch = ",ref.batch, " as a reference batch (this batch won't change)")
         ref <- which(levels(as.factor(batch))==ref.batch) # find the reference
         batchmod[,ref] <- 1
     } else {
         ref <- NULL
     }
-    message("Found", nlevels(batch), "batches")
+    message("Found ", nlevels(batch), " batches")
   
     ## A few other characteristics on the batches
     n.batch <- nlevels(batch)
@@ -90,7 +90,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     design <- as.matrix(design[,!check])
   
     ## Number of covariates or covariate levels
-    message("Adjusting for", ncol(design)-ncol(batchmod), 'covariate(s) or covariate level(s)')
+    message("Adjusting for ", ncol(design)-ncol(batchmod), " covariate(s) or covariate level(s)")
   
     ## Check if the design is confounded
     if(qr(design)$rank < ncol(design)) {
@@ -100,7 +100,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
         }
         if(ncol(design)>(n.batch+1)) {
             if((qr(design[,-c(1:n.batch)])$rank<ncol(design[,-c(1:n.batch)]))){
-                stop('The covariates are confounded! Please remove one or more of the covariates so the design is not confounded')
+                stop("The covariates are confounded! Please remove one or more of the covariates so the design is not confounded")
             } else {
                 stop("At least one covariate is confounded with batch! Please remove confounded covariates and rerun ComBat")
             }
@@ -110,11 +110,12 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     ## Check for missing values
     NAs <- any(is.na(dat))
     if(NAs){
-        message(c('Found',sum(is.na(dat)),'Missing Data Values'), sep=' ')}
+        message('Found ', sum(is.na(dat)), ' missing data values')
+    }
     ## print(dat[1:2,])
   
     ##Standardize Data across genes
-    cat('Standardizing Data across genes\n')
+    message('Standardizing Data across genes')
     if (!NAs){
         B.hat <- solve(crossprod(design), tcrossprod(t(design), as.matrix(dat)))
     } else { 
@@ -254,7 +255,7 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     }
     
     ## Normalize the Data ###
-    message("Adjusting the Data\n")
+    message("Adjusting the data")
   
     bayesdata <- s.data
     j <- 1

@@ -41,19 +41,28 @@
 #' 
 
 svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw","two-step","supervised"),
-                vfilter=NULL,B=5, numSVmethod = "be",constant = 1) {
+                   vfilter=NULL,B=5, numSVmethod = "be",constant = 1) {
   method <- match.arg(method)
-  if(!is.null(controls) & !is.null(vfilter)){stop("sva error: if controls is provided vfilter must be NULL.\n")}
-  if((method=="supervised") & is.null(controls)){stop("sva error: for a supervised analysis you must provide a vector of controls.\n")}
-  if(!is.null(controls) & (method!="supervised")){method = "supervised"; cat("sva warning: controls provided so supervised sva is being performed.\n")}
+  if(!is.null(controls) & !is.null(vfilter)){
+    stop("sva error: if controls is provided vfilter must be NULL.")
+  }
+  if((method=="supervised") & is.null(controls)){
+    stop("sva error: for a supervised analysis you must provide a vector of controls.")
+  }
+  if(!is.null(controls) & (method!="supervised")){
+    method = "supervised";
+    warning("sva warning: controls provided so supervised sva is being performed.")
+  }
   
-  if(any(dat < 0)){stop("svaseq error: counts must be zero or greater")}
+  if(any(dat < 0)){
+    stop("svaseq error: counts must be zero or greater.")
+  }
   dat = log(dat + constant)
   
   
   if(!is.null(vfilter)){
     if(vfilter < 100 | vfilter > dim(dat)[1]){
-      stop(paste("sva error: the number of genes used in the analysis must be between 100 and",dim(dat)[1],"\n"))
+      stop(paste("sva error: the number of genes used in the analysis must be between 100 and",dim(dat)[1]))
     }
     tmpv = rowVars(dat)
     ind = which(rank(-tmpv) < vfilter)
@@ -65,8 +74,8 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
   }
   
   if(n.sv > 0){
-    cat(paste("Number of significant surrogate variables is: ",n.sv,"\n"))
- 
+    message("Number of significant surrogate variables is: ", n.sv, ".")
+
     if(method=="two-step"){
       return(twostepsva.build(dat=dat, mod=mod,n.sv=n.sv))
     }
@@ -77,6 +86,7 @@ svaseq <- function(dat, mod, mod0 = NULL,n.sv=NULL,controls=NULL,method=c("irw",
       return(ssva(dat,controls,n.sv=n.sv))
     }
   }else{
-    cat("No significant surrogate variables\n"); return(list(sv=0,pprob.gam=0,pprob.b=0,n.sv=0))
+    message("No significant surrogate variables.")
+    return(list(sv=0,pprob.gam=0,pprob.b=0,n.sv=0))
   }
 }
