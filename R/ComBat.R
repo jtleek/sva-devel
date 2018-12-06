@@ -43,8 +43,26 @@
 #' @export
 #'
 
-ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
-                    mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam("SerialParam")) {
+ComBat <- function(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
+                   mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam("SerialParam")) {
+    ## coerce dat into a matrix
+    dat <- as.matrix(dat)
+    
+    ## find genes with zero variance in any of the batches
+    batch <- as.factor(batch)
+    zero.rows.lst <- lapply(levels(batch), function(batch_level){
+      which(apply(dat[, batch==batch_level], 1, function(x){var(x)==0}))
+    })
+    zero.rows <- Reduce(union, zero.rows.lst)
+    keep.rows <- setdiff(1:nrow(dat), zero.rows)
+    
+    if (length(zero.rows) > 0) {
+      cat(sprintf("Found %d genes with uniform expression within a single batch (all zeros); these will not be adjusted for batch.\n", length(zero.rows)))
+      # keep a copy of the original data matrix and remove zero var rows
+      dat.orig <- dat
+      dat <- dat[keep.rows, ]
+    }
+  
     ## make batch a factor and make a set of indicators for batch
     if(mean.only==TRUE){
         message("Using the 'mean only' version of ComBat")
@@ -52,7 +70,6 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     if(length(dim(batch))>1){
         stop("This version of ComBat only allows one batch variable")
     }  ## to be updated soon!
-    batch <- as.factor(batch)
     batchmod <- model.matrix(~-1+batch)  
     if (!is.null(ref.batch)){
         ## check for reference batch, check value, and make appropriate changes
@@ -265,12 +282,15 @@ ComBat <- function (dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALS
     
     bayesdata <- (bayesdata*(sqrt(var.pooled)%*%t(rep(1,n.array))))+stand.mean # FIXME
   
-    ## tiny change still exist when tested on bladder data
-    ## total sum of change within each batch around 1e-15 
-    ## (could be computational system error).  
     ## Do not change ref batch at all in reference version
     if(!is.null(ref.batch)){
         bayesdata[, batches[[ref]]] <- dat[, batches[[ref]]]
+    }
+    
+    ## put genes with 0 variance in any batch back in data
+    if (length(zero.rows) > 0) {
+      dat.orig[keep.rows, ] <- bayesdata
+      bayesdata <- dat.orig
     }
     
     return(bayesdata)
