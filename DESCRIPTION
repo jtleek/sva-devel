@@ -1,6 +1,6 @@
 Package: sva
 Title: Surrogate Variable Analysis
-Version: 3.31.0
+Version: 3.31.1
 Author: Jeffrey T. Leek <jtleek@gmail.com>, W. Evan Johnson <wej@bu.edu>,
     Hilary S. Parker <hiparker@jhsph.edu>, Elana J. Fertig <ejfertig@jhmi.edu>,
     Andrew E. Jaffe <ajaffe@jhsph.edu>, John D. Storey <jstorey@princeton.edu>,
@@ -46,6 +46,6 @@ Suggests:
     zebrafishRNASeq,
     testthat
 License: Artistic-2.0
-biocViews: Microarray, StatisticalMethod, Preprocessing,
+biocViews: ImmunoOncology, Microarray, StatisticalMethod, Preprocessing,
     MultipleComparison, Sequencing, RNASeq, BatchEffect, Normalization
 RoxygenNote: 6.0.1
