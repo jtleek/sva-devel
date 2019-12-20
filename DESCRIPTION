@@ -1,11 +1,11 @@
 Package: sva
 Title: Surrogate Variable Analysis
-Version: 3.31.0
+Version: 3.33.1
 Author: Jeffrey T. Leek <jtleek@gmail.com>, W. Evan Johnson <wej@bu.edu>,
     Hilary S. Parker <hiparker@jhsph.edu>, Elana J. Fertig <ejfertig@jhmi.edu>,
     Andrew E. Jaffe <ajaffe@jhsph.edu>, John D. Storey <jstorey@princeton.edu>,
     Yuqing Zhang <zhangyuqing.pkusms@gmail.com>,
-    Leonardo Collado Torres <lcollado@jhu.edu>
+    Leonardo Collado Torres <lcolladotor@gmail.com>
 Description: The sva package contains functions for removing batch
     effects and other unwanted variation in high-throughput
     experiment. Specifically, the sva package contains functions
@@ -46,6 +46,6 @@ Suggests:
     zebrafishRNASeq,
     testthat
 License: Artistic-2.0
-biocViews: Microarray, StatisticalMethod, Preprocessing,
+biocViews: ImmunoOncology, Microarray, StatisticalMethod, Preprocessing,
     MultipleComparison, Sequencing, RNASeq, BatchEffect, Normalization
 RoxygenNote: 6.0.1
