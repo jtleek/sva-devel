@@ -4,7 +4,6 @@
 \name{sva}
 \alias{sva}
 \alias{sva-package}
-\alias{sva}
 \title{sva: a package for removing artifacts from microarray and sequencing data}
 \usage{
 sva(dat, mod, mod0 = NULL, n.sv = NULL, controls = NULL,

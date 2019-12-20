@@ -45,13 +45,21 @@
 
 ComBat <- function(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
                    mean.only = FALSE, ref.batch = NULL, BPPARAM = bpparam("SerialParam")) {
+    if(length(dim(batch))>1){
+      stop("This version of ComBat only allows one batch variable")
+    }  ## to be updated soon!  
+    
     ## coerce dat into a matrix
     dat <- as.matrix(dat)
     
     ## find genes with zero variance in any of the batches
     batch <- as.factor(batch)
     zero.rows.lst <- lapply(levels(batch), function(batch_level){
-      which(apply(dat[, batch==batch_level], 1, function(x){var(x)==0}))
+      if(sum(batch==batch_level)>1){
+        return(which(apply(dat[, batch==batch_level], 1, function(x){var(x)==0})))
+      }else{
+        return(which(rep(1,3)==2))
+      }
     })
     zero.rows <- Reduce(union, zero.rows.lst)
     keep.rows <- setdiff(1:nrow(dat), zero.rows)
@@ -64,12 +72,11 @@ ComBat <- function(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE
     }
   
     ## make batch a factor and make a set of indicators for batch
+    if(any(table(batch)==1)){mean.only=TRUE}
     if(mean.only==TRUE){
         message("Using the 'mean only' version of ComBat")
     }
-    if(length(dim(batch))>1){
-        stop("This version of ComBat only allows one batch variable")
-    }  ## to be updated soon!
+    
     batchmod <- model.matrix(~-1+batch)  
     if (!is.null(ref.batch)){
         ## check for reference batch, check value, and make appropriate changes

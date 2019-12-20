@@ -178,6 +178,7 @@ There are a few additional options for the \Rfunction{ComBat} function.  By defa
 Also, we have now added the \texttt{mean.only=TRUE} option, that only adjusts the mean of the batch effects across batches (default adjusts the mean and variance). This option is recommended for cases where milder batch effects are expected (so no need to adjust the variance), or in cases where the variances are expected to be different across batches due to the biology. For example, suppose a researcher wanted to project a knock-down genomic signature to be projected into the TCGA data. In this case, the knockdowns samples may be very similar to each other (low variance) whereas the signature will be at varying levels in the TCGA patient data. Thus the variances may be very different between the two batches (signature perturbation samples vs TCGA), so only adjusting the mean of the batch effect across the samples might be desired in this case.
 
 Finally, we have now added a \texttt{ref.batch} parameter, which allows users to select one batch as a reference to which other batches will be adjusted. Specifically, the means and variances of the non-reference batches will be adjusted to make the mean/variance of the reference batch. This is a useful feature for cases where one batch is larger or better quality. In addition, this will be useful in biomarker situations where the researcher wants to fix the traning set/model and then adjust test sets to the reference/training batch. This avoids test-set bias in such studies.  
+When using the \texttt{mean.only=TRUE} or the \texttt{ref.batch} options, please cite \cite{zhang2018alternative}.
 
 \section{Removing known batch effects with a linear model}
 
@@ -314,6 +315,12 @@ For combat please cite:
 
 \begin{itemize}
 \item Johnson WE, Li C, Rabinovic A (2007) Adjusting batch effects in microarray expression data using empirical Bayes methods. Biostatistics,  8 (1), 118-127
+\end{itemize}
+
+For mean-only or reference-batch combat please cite:
+
+\begin{itemize}
+\item Zhang, Y., Jenkins, D. F., Manimaran, S., Johnson, W. E. (2018). Alternative empirical Bayes models for adjusting for batch effects in genomic studies. BMC bioinformatics, 19 (1), 262.
 \end{itemize}
 
 For svaseq please cite: 

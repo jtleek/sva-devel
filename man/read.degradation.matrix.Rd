@@ -4,9 +4,9 @@
 \alias{read.degradation.matrix}
 \title{A function for reading in coverage data from degradation-susceptible regions}
 \usage{
-read.degradation.matrix(covFiles, sampleNames, totalMapped, readLength = 100,
-  normFactor = 8e+07, type = c("bwtool", "region_matrix_single",
-  "region_matrix_all"), BPPARAM = bpparam())
+read.degradation.matrix(covFiles, sampleNames, totalMapped,
+  readLength = 100, normFactor = 8e+07, type = c("bwtool",
+  "region_matrix_single", "region_matrix_all"), BPPARAM = bpparam())
 }
 \arguments{
 \item{covFiles}{coverage file(s) for degradation regions}
