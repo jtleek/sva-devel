@@ -192,7 +192,6 @@ ComBat_seq <- function(counts, batch, group, covar_mod=NULL, full_mod=TRUE,
   cat("Adjusting the data\n")
   adjust_counts <- matrix(NA, nrow=nrow(counts), ncol=ncol(counts))
   for(kk in 1:n_batch){
-    print(sprintf("batch: %s", kk))
     counts_sub <- counts[, batches_ind[[kk]]]
     old_mu <- mu_hat[, batches_ind[[kk]]]
     old_phi <- phi_hat[, kk]

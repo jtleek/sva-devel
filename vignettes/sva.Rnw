@@ -180,6 +180,38 @@ Also, we have now added the \texttt{mean.only=TRUE} option, that only adjusts th
 Finally, we have now added a \texttt{ref.batch} parameter, which allows users to select one batch as a reference to which other batches will be adjusted. Specifically, the means and variances of the non-reference batches will be adjusted to make the mean/variance of the reference batch. This is a useful feature for cases where one batch is larger or better quality. In addition, this will be useful in biomarker situations where the researcher wants to fix the traning set/model and then adjust test sets to the reference/training batch. This avoids test-set bias in such studies.  
 When using the \texttt{mean.only=TRUE} or the \texttt{ref.batch} options, please cite \cite{zhang2018alternative}.
 
+
+\section{\Rfunction{ComBat-Seq} for batch adjustment on RNA-Seq count data} 
+
+ComBat-Seq is an improved model based on the ComBat framework, which specifically targets RNA-Seq count data. It uses a negative binomial regression to model the count matrix, and estimate parameters representing the batch effects. Then it provides adjusted data by mapping the original data to an expected distribution if there were no batch effects. The adjusted data preserve the integer nature of count matrix. Like ComBat, it requires known a batch variable.
+
+<<input>>=
+count_matrix <- matrix(rnbinom(400, size=10, prob=0.1), 
+                       nrow=50, ncol=8)
+batch <- c(rep(1, 4), rep(2, 4))
+
+adjusted <- ComBat_seq(count_matrix, batch=batch, group=NULL)
+@
+  
+In ComBat-Seq, user may specify biological covariates, whose signals will be preserved in the adjusted data. If the user would like to specify one biological variable, they may use the \texttt{group} parameter
+
+<<input>>=
+group <- rep(c(0,1), 4)
+adjusted_counts <- ComBat_seq(count_matrix, batch=batch, 
+                              group=group)
+@
+  
+If users wish to specify multiple biological variables, they may pass them as a matrix or data frame to the \texttt{covar\_mod} parameter
+
+<<input>>=
+cov1 <- rep(c(0,1), 4)
+cov2 <- c(0,0,1,1,0,0,1,1)
+covar_mat <- cbind(cov1, cov2)
+adjusted_counts <- ComBat_seq(count_matrix, batch=batch, 
+                              group=NULL, covar_mod=covar_mat)
+@
+  
+
 \section{Removing known batch effects with a linear model}
 
 Direct adjustment for batch effects can also be performed using the \Rfunction{f.pvalue} function. In the bladder cancer example, one of the known variables is a batch variable. This variable can be included as an adjustment variable in both \texttt{mod} and \texttt{mod0}. Then the \Rfunction{f.pvalue} function can be used to detect differential expression. This approach is a simplified version of \Rfunction{ComBat}.
