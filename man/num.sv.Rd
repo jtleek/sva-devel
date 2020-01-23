@@ -4,8 +4,7 @@
 \alias{num.sv}
 \title{A function for calculating the number of surrogate variables to estimate in a model}
 \usage{
-num.sv(dat, mod, method = c("be", "leek"), vfilter = NULL, B = 20,
-  seed = NULL)
+num.sv(dat, mod, method = c("be", "leek"), vfilter = NULL, B = 20, seed = NULL)
 }
 \arguments{
 \item{dat}{The transformed data matrix with the variables in rows and samples in columns}

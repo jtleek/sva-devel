@@ -4,8 +4,16 @@
 \alias{ComBat_seq}
 \title{Adjust for batch effects using an empirical Bayes framework in RNA-seq raw counts}
 \usage{
-ComBat_seq(counts, batch, group, covar_mod = NULL, full_mod = TRUE,
-  shrink = FALSE, shrink.disp = FALSE, gene.subset.n = NULL)
+ComBat_seq(
+  counts,
+  batch,
+  group = NULL,
+  covar_mod = NULL,
+  full_mod = TRUE,
+  shrink = FALSE,
+  shrink.disp = FALSE,
+  gene.subset.n = NULL
+)
 }
 \arguments{
 \item{counts}{Raw count matrix from genomic studies (dimensions gene x sample)}

@@ -4,8 +4,14 @@
 \alias{empirical.controls}
 \title{A function for estimating the probability that each gene is an empirical control}
 \usage{
-empirical.controls(dat, mod, mod0 = NULL, n.sv, B = 5,
-  type = c("norm", "counts"))
+empirical.controls(
+  dat,
+  mod,
+  mod0 = NULL,
+  n.sv,
+  B = 5,
+  type = c("norm", "counts")
+)
 }
 \arguments{
 \item{dat}{The transformed data matrix with the variables in rows and samples in columns}

@@ -4,9 +4,16 @@
 \alias{ComBat}
 \title{Adjust for batch effects using an empirical Bayes framework}
 \usage{
-ComBat(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE,
-  mean.only = FALSE, ref.batch = NULL,
-  BPPARAM = bpparam("SerialParam"))
+ComBat(
+  dat,
+  batch,
+  mod = NULL,
+  par.prior = TRUE,
+  prior.plots = FALSE,
+  mean.only = FALSE,
+  ref.batch = NULL,
+  BPPARAM = bpparam("SerialParam")
+)
 }
 \arguments{
 \item{dat}{Genomic measure matrix (dimensions probe x sample) - for example, expression matrix}
