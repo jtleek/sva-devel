@@ -48,4 +48,4 @@ Suggests:
 License: Artistic-2.0
 biocViews: ImmunoOncology, Microarray, StatisticalMethod, Preprocessing,
     MultipleComparison, Sequencing, RNASeq, BatchEffect, Normalization
-RoxygenNote: 6.0.1
+RoxygenNote: 7.0.2
