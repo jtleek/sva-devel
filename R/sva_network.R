@@ -27,7 +27,7 @@ sva_network=function(dat, n.pc){
 	ss<-svd(dat - colMeans(dat))
 
 	dat.adjusted=dat
-	for (i in 1:dim(dat)[2]){
+	for (i in seq_len(dim(dat))[2]){
   		dat.adjusted[,i]<- lm(dat[,i] ~ ss$u[,1:n.pc])$residuals
 	}
 	return(dat.adjusted)
