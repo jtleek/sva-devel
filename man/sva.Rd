@@ -3,13 +3,19 @@
 \docType{package}
 \name{sva}
 \alias{sva}
-\alias{sva-package}
-\alias{sva}
 \title{sva: a package for removing artifacts from microarray and sequencing data}
 \usage{
-sva(dat, mod, mod0 = NULL, n.sv = NULL, controls = NULL,
-  method = c("irw", "two-step", "supervised"), vfilter = NULL, B = 5,
-  numSVmethod = "be")
+sva(
+  dat,
+  mod,
+  mod0 = NULL,
+  n.sv = NULL,
+  controls = NULL,
+  method = c("irw", "two-step", "supervised"),
+  vfilter = NULL,
+  B = 5,
+  numSVmethod = "be"
+)
 }
 \arguments{
 \item{dat}{The transformed data matrix with the variables in rows and samples in columns}
