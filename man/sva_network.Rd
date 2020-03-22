@@ -7,7 +7,7 @@
 sva_network(dat, n.pc)
 }
 \arguments{
-\item{dat}{The raw gene expression data matrix (with variables in rows and samples in columns)}
+\item{dat}{The uncorrected normalized gene expression data matrix with samples in rows and genes in columns}
 
 \item{n.pc}{The number of principal components to remove}
 }
@@ -25,11 +25,10 @@ library(bladderbatch)
 data(bladderdata)
 dat <- bladderEset[1:5000,]
 
-pheno = pData(dat)
 edata = exprs(dat)
-mod = model.matrix(~as.factor(cancer), data=pheno)
+mod = matrix(1, nrow = dim(dat)[2], ncol = 1)
 
 n.pc = num.sv(edata, mod, method="be")
-dat.adjusted = sva_network(edata, n.pc)
+dat.adjusted = sva_network(t(edata), n.pc)
 
 }
