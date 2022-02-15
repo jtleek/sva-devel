@@ -83,13 +83,13 @@ ComBat <- function(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE
         if (!(ref.batch%in%levels(batch))) {
             stop("reference level ref.batch is not one of the levels of the batch variable")
         }
-        message("Using batch =",ref.batch, "as a reference batch (this batch won't change)")
+        message("Using batch = ",ref.batch, " as a reference batch (this batch won't change)")
         ref <- which(levels(as.factor(batch))==ref.batch) # find the reference
         batchmod[,ref] <- 1
     } else {
         ref <- NULL
     }
-    message("Found", nlevels(batch), "batches")
+    message("Found ", nlevels(batch), " batches")
   
     ## A few other characteristics on the batches
     n.batch <- nlevels(batch)
@@ -100,7 +100,7 @@ ComBat <- function(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE
     n.batches <- sapply(batches, length)
     if(any(n.batches==1)){
         mean.only=TRUE
-        message("Note: one batch has only one sample, setting mean.only=TRUE")
+        message("Note: one batch has only one sample, setting mean.only = TRUE")
     }
     n.array <- sum(n.batches)
     ## combine batch variable and covariates
@@ -114,7 +114,7 @@ ComBat <- function(dat, batch, mod = NULL, par.prior = TRUE, prior.plots = FALSE
     design <- as.matrix(design[,!check])
   
     ## Number of covariates or covariate levels
-    message("Adjusting for", ncol(design)-ncol(batchmod), 'covariate(s) or covariate level(s)')
+    message("Adjusting for ", ncol(design)-ncol(batchmod), ' covariate(s) or covariate level(s)')
   
     ## Check if the design is confounded
     if(qr(design)$rank < ncol(design)) {
