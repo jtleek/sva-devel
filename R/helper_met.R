@@ -1,0 +1,579 @@
+
+## Validation function
+validate_inputs <- function(vmat, dtype, batch, group, pseudo_beta) {
+  ## check if vmat has the correct format
+  if (!(is.matrix(vmat) && is.numeric(vmat))) {
+    if (is.data.frame(vmat) && all(sapply(vmat, is.numeric))) {
+      vmat <- as.matrix(vmat)
+      cat("Input is numeric.\n")
+    } else {
+      stop("vmat must be a matrix of beta-values or M-values, or a SummarizedExperiment object.")
+    }
+  }
+  
+  ## check if pseudo-beta values are valid
+  if (dtype == "b-value" && (pseudo_beta <= 0 | pseudo_beta >= 0.5)) {
+    stop("Invalid pseudo beta-values.")
+  }
+  
+  ## check if coverage matrix, batch, and group have matching sizes
+  if (ncol(vmat) != length(batch)) {
+    stop("Coverage matrix and batch vector do not have matching sizes.")
+  }
+  
+  if (!is.null(group) && ncol(vmat) != length(group)) {
+    stop("Coverage matrix and group vector do not have matching sizes.")
+  }
+  
+  ## Does not allow beta values outside the (0, 1) range
+  if (dtype == "b-value" && (sum(vmat >= 1, na.rm = TRUE) > 0 | sum(vmat <= 0, na.rm = TRUE) > 0)) {
+    stop("All beta values must be between 0 and 1.")
+  }
+  
+  ## check if batch is valid
+  if (length(dim(batch)) > 1) {
+    stop("ComBat-met does not allow more than one batch variable!")
+  }
+  
+  batch <- as.factor(batch)
+  if (all(table(batch) <= 1)) {
+    stop("ComBat-met doesn't support only 1 sample across all batches!")
+  }
+  
+  if (length(levels(batch)) <= 1) {
+    stop("Found only one batch. No need to adjust for batch effects!")
+  }
+  
+  if (!is.null(group)) {
+    group <- as.factor(group)
+  }
+  
+  return(list(vmat = vmat, batch = batch, group = group))
+}
+
+## Data preprocessing
+preprocess_data <- function(vmat, dtype, batch, mean.only, pseudo_beta) {
+  ## convert extreme 0 or 1 values to pseudo-beta
+  if (dtype == "b-value") {
+    vmat[vmat == 0] <- pseudo_beta
+    vmat[vmat == 1] <- 1 - pseudo_beta    
+  }
+  
+  ## Correct for mean batch effects only if any batch has only 1 sample
+  if (any(table(batch) == 1)) {
+    cat("At least one batch contains only 1 sample. Only mean batch effects will be corrected.\n")
+    mean.only <- TRUE
+  }
+  
+  ## Remove features with zero variance across all batches
+  zero.var.rows.lst <- lapply(levels(batch), function(b) {
+    which(apply(vmat[, batch == b], 1, function(x) {stats::var(x, na.rm = TRUE) == 0}))
+  })
+  all.zero.var.rows <- Reduce(intersect, zero.var.rows.lst)
+  
+  if (length(all.zero.var.rows) > 0) {
+    cat(sprintf("Found %s features with uniform values across all batches; 
+                these features will not be adjusted for batch effects.\n",
+                length(all.zero.var.rows)))
+  }
+  
+  keep <- setdiff(1:nrow(vmat), all.zero.var.rows)
+  vmatOri <- vmat
+  vmat <- vmatOri[keep, ]
+  
+  ## Create a vector for correction types
+  mean.only.vec <- if (mean.only) rep(TRUE, length(keep)) else rep(FALSE, length(keep))
+  
+  return(list(vmatOri = vmatOri, vmat = vmat, keep = keep, mean.only.vec = mean.only.vec))
+}
+
+## Design matrix preparation
+prepare_design_matrices <- function(batch, group, covar_mod, full_mod, ref.batch) {
+  # number of batches
+  n_batch <- nlevels(batch)
+  # list of samples in each batch
+  batches_ind <- lapply(1:n_batch, function(i) {
+    which(batch == levels(batch)[i])
+  })
+
+  # biological condition matrix
+  if (full_mod & !is.null(group) & nlevels(group) > 1) {
+    cat("Using full model in ComBat-met.\n")
+    mod <- stats::model.matrix(~group)
+  } else {
+    cat("Using null model in ComBat-met.\n")
+    mod <- stats::model.matrix(~1, data = as.data.frame(batch))
+  }
+  # covariate matrix
+  if (!is.null(covar_mod)) {
+    if (is.data.frame(covar_mod)) {
+      covar_mod <- do.call(cbind, lapply(1:ncol(covar_mod), function(i) {
+        stats::model.matrix(~covar_mod[, i])
+      }))
+    }
+  }
+  # combine covariate matrix with biological condition matrix and batch_matrix
+  mod <- cbind(mod, covar_mod)
+  batchmod <- stats::model.matrix(~-1 + batch)
+  if (!is.null(ref.batch)) {
+    if (!(ref.batch %in% levels(batch))) {
+      stop("Reference level ref. batch is not one of the levels of the batch variable.")
+    }
+    cat(sprintf("Using batch %s as the reference batch\n", ref.batch))
+    ref <- which(levels(batch) == ref.batch)
+  } else {
+    ref <- NULL
+  }
+  
+  design <- cbind(batchmod, mod)
+  ## Check for intercept in covariates, and drop if present
+  check <- apply(design, 2, function(x) all(x == 1))
+  design <- as.matrix(design[, !check])
+  cat("Adjusting for", ncol(design) - ncol(batchmod), 'covariate(s) or covariate level(s).\n')
+  
+  if (qr(design)$rank < ncol(design)) {
+    handle_confounded_design(design, n_batch)
+  }
+  
+  return(list(design = design, batchmod = batchmod, n_batch = n_batch, batches_ind = batches_ind, ref = ref))
+}
+
+## Check if the design is confounded
+handle_confounded_design <- function(design, n_batch) {
+  if (ncol(design) == (n_batch+1)) {
+    stop("The covariate is confounded with batch! Remove the covariate and rerun ComBat-met.")
+  }
+  if (ncol(design) > (n_batch+1)) {
+    if ((qr(design[, -c(1:n_batch)])$rank < ncol(design[, -c(1:n_batch)]))) {
+      stop('The covariates are confounded! Please remove one or more of the covariates 
+             so the design is not confounded.')
+    } else {
+      stop("At least one covariate is confounded with batch! Please remove confounded 
+             covariates and rerun ComBat-met.")
+    }
+  }
+}
+
+## Data conversion
+convert_to_beta_values <- function(vmat, dtype) {
+  ## convert M-values to beta-values if needed
+  if (dtype == "b-value") {
+    return(vmat)
+  } else {
+    return(exp(vmat) / (1 + exp(vmat)))
+  }
+}
+
+## Parameter estimation
+estimate_parameters <- function(bv, design, batchmod, n_batch, batches_ind,
+                                mean.only.vec, ref.batch, ref, ncores) {
+  cat("Fitting the GLM model\n")
+  
+  # Validate ncores
+  validate_ncores(ncores)
+  
+  # Set up parallel processing
+  cl <- setup_parallel_processing(ncores)
+  on.exit(parallel::stopCluster(cl))
+  
+  # Run parameter estimation in parallel
+  result_lst <- run_parallel_estimation(cl, bv, design, batchmod, n_batch, batches_ind,
+                                        mean.only.vec, ref.batch, ref)
+  
+  # Process and summarize results
+  processed_results <- process_estimation_results(result_lst, n_batch)
+  
+  # Report any issues found
+  report_estimation_issues(processed_results$n_zero_modvar,
+                           processed_results$n_zero_modvar_batch,
+                           processed_results$n_moderr,
+                           mean.only.vec)
+  
+  return(processed_results)
+}
+
+## Validate number of cores
+validate_ncores <- function(ncores) {
+  if (!is.numeric(ncores) || ncores != as.integer(ncores) || ncores <= 0) {
+    stop("ncores must be a positive integer.")
+  }
+}
+
+## Set up parallel processing
+setup_parallel_processing <- function(ncores) {
+  num_cores <- max(1, parallel::detectCores() - 1)
+  num_cores <- min(ncores, num_cores)
+  parallel::makeCluster(num_cores)
+}
+
+## Run parallel estimation
+run_parallel_estimation <- function(cl, bv, design, batchmod, n_batch, batches_ind,
+                                    mean.only.vec, ref.batch, ref) {
+  parallel::clusterExport(cl, varlist = c("bv", "design", "batchmod", "n_batch", "batches_ind",
+                                          "mean.only.vec", "ref.batch", "ref",
+                                          "estimate_single_feature",
+                                          "check_na_values",
+                                          "check_model_variance",
+                                          "fit_glm_model",
+                                          "calculate_parameters"),
+                          envir = environment())
+  
+  # run in parallel
+  parallel::parLapply(cl, 1:nrow(bv), function(k) {
+    estimate_single_feature(k, bv, design, batchmod, n_batch, batches_ind,
+                            mean.only.vec, ref.batch, ref)
+  })
+}
+
+## Estimate a single feature
+estimate_single_feature <- function(k, bv, design, batchmod, n_batch, batches_ind,
+                                    mean.only.vec, ref.batch, ref) {
+  result<- list(gamma_hat = NULL, mu_hat = NULL, phi_hat = NULL, delta_hat = NULL,
+                zero_modvar = 0, zero_modvar_batch = 0, moderr = 0)
+  
+  # Check for NA values
+  na_check <- check_na_values(k, design, bv)
+  if (na_check$has_issue) return(na_check$result)
+  
+  # Check model variance
+  variance_check <- check_model_variance(k, design, bv, batchmod, n_batch, batches_ind,
+                                         mean.only.vec, na_check$nona)
+  if (variance_check$has_issue) return(variance_check$result)
+  
+  # Fit GLM
+  glm_fit <- fit_glm_model(k, bv, design, batchmod, mean.only.vec, na_check$nona)
+  # if error with model fitting
+  if (inherits(glm_fit, "error")) {
+    result$moderr <- 1
+    return(result)
+  }
+  
+  # Calculate parameters
+  calculate_parameters(glm_fit, n_batch, batchmod, na_check$nona, ref.batch, ref, mean.only.vec[k])
+}
+
+## Check whether the matrix contains NAs
+check_na_values <- function(k, design, bv) {
+  # mark rows with NA values
+  full_mat <- cbind(design, bv[k, ])
+  nona <- which(stats::complete.cases(full_mat))
+  
+  # check if the data are all NAs
+  if (length(nona) == 0) {
+    return(list(has_issue = TRUE,
+                result = list(gamma_hat = NULL, mu_hat = NULL, phi_hat = NULL, delta_hat = NULL,
+                              zero_modvar = 1, zero_modvar_batch = 0, moderr = 0)))
+  }
+  
+  list(has_issue = FALSE, nona = nona)
+}
+
+## Check model variance
+check_model_variance <- function(k, design, bv, batchmod, n_batch, batches_ind,
+                                 mean.only.vec, nona) {
+  full_mat <- cbind(design, bv[k, ])
+  
+  # check if the model has zero model variance
+  if (qr(full_mat[nona, ])$rank < ncol(full_mat)) {
+    return(list(has_issue = TRUE,
+                result = list(gamma_hat = NULL, mu_hat = NULL, phi_hat = NULL, delta_hat = NULL,
+                              zero_modvar = 1, zero_modvar_batch = 0, moderr = 0)))
+  }
+  
+  # if precision correction enabled, check whether the model has zero model variance within any batch
+  if (!mean.only.vec[k]) {
+    for (i in 1:length(batches_ind)) {
+      if (qr(full_mat[intersect(batches_ind[[i]], nona), c(i, (n_batch+1):ncol(full_mat))])$rank < 
+          ncol(full_mat) - n_batch + 1) {
+        return(list(has_issue = TRUE,
+                    result = list(gamma_hat = NULL, mu_hat = NULL, phi_hat = NULL, delta_hat = NULL,
+                                  zero_modvar = 0, zero_modvar_batch = 1, moderr = 0)))
+      }
+    }
+  }
+  
+  list(has_issue = FALSE)
+}
+
+## Fit GLM
+fit_glm_model <- function(k, bv, design, batchmod, mean.only.vec, nona) {
+  # model fit
+  if (mean.only.vec[k]) {
+    tryCatch({
+      betareg::betareg.fit(x = design[nona, ], y = bv[k, ][nona])
+    }, error = function(e) {
+      e
+    })
+  } else {
+    tryCatch({
+      betareg::betareg.fit(x = design[nona, ], y = bv[k, ][nona], 
+                           z = batchmod[nona, ])
+    }, error = function(e) {
+      e
+    })
+  }
+}
+
+## Calculate parameters
+calculate_parameters <- function(glm_f, n_batch, batchmod, nona, ref.batch, ref, 
+                                 tmp.mean.only) {
+  result <- list(gamma_hat = NULL, mu_hat = NULL, phi_hat = NULL, delta_hat = NULL,
+                 zero_modvar = 0, zero_modvar_batch = 0, moderr = 0)
+  
+  # compute mean and precision intercepts as batch-size-weighted average from batches
+  if (!is.null(ref.batch)) {
+    alpha_x <- glm_f$coefficients$mean[ref]
+  } else {
+    alpha_x <- glm_f$coefficients$mean[1:n_batch] %*% 
+      as.matrix(colSums(batchmod[nona, ]) / length(nona))
+  }
+  
+  if (tmp.mean.only) {
+    alpha_z <- glm_f$coefficients$precision
+  } else {
+    if (!is.null(ref.batch)) {
+      alpha_z <- glm_f$coefficients$precision[ref]
+    } else {
+      alpha_z <- glm_f$coefficients$precision %*%
+        as.matrix(colSums(batchmod[nona, ]) / length(nona))
+    }
+  }
+  
+  # estimate parameters
+  result$gamma_hat <- glm_f$coefficients$mean[1:n_batch] - as.numeric(alpha_x)
+  result$mu_hat <- rep(NA, nrow(batchmod))
+  result$mu_hat[nona] <- glm_f$fitted.values
+  result$phi_hat <- as.numeric(exp(alpha_z)) * rep(1, nrow(batchmod))
+  
+  if (tmp.mean.only) {
+    result$delta_hat <- rep(0, n_batch)
+  } else {
+    result$delta_hat <- glm_f$coefficients$precision - as.numeric(alpha_z)
+  }
+  
+  result
+}
+
+## Process estimation results
+process_estimation_results <- function(result_lst, n_batch) {
+  gamma_hat_lst <- lapply(result_lst, function(x) x$gamma_hat)
+  mu_hat_lst <- lapply(result_lst, function(x) x$mu_hat)
+  phi_hat_lst <- lapply(result_lst, function(x) x$phi_hat)
+  delta_hat_lst <- lapply(result_lst, function(x) x$delta_hat)
+  
+  n_zero_modvar <- sum(unlist(lapply(result_lst, function(x) x$zero_modvar)))
+  n_zero_modvar_batch <- sum(unlist(lapply(result_lst, function(x) x$zero_modvar_batch)))
+  n_moderr <- sum(unlist(lapply(result_lst, function(x) x$moderr)))
+  
+  # convert NULLs to NAs
+  gamma_hat_lst[sapply(gamma_hat_lst, is.null)] <- NA
+  mu_hat_lst[sapply(mu_hat_lst, is.null)] <- NA
+  phi_hat_lst[sapply(phi_hat_lst, is.null)] <- NA
+  delta_hat_lst[sapply(delta_hat_lst, is.null)] <- NA
+  
+  # reformat lists as matrices
+  list(
+    gamma_hat_mat = do.call('rbind', gamma_hat_lst),
+    mu_hat_mat = do.call('rbind', mu_hat_lst),
+    phi_hat_mat = do.call('rbind', phi_hat_lst),
+    delta_hat_mat = do.call('rbind', delta_hat_lst),
+    n_zero_modvar = n_zero_modvar,
+    n_zero_modvar_batch = n_zero_modvar_batch,
+    n_moderr = n_moderr
+  )
+}
+
+## Report estimation issues
+report_estimation_issues <- function(n_zero_modvar, n_zero_modvar_batch,
+                                     n_moderr, mean.only.vec) {
+  cat(sprintf("Found %s features with zero model variance; 
+              these features won't be adjusted for batch effects.\n",
+              n_zero_modvar))
+  cat(sprintf("Errors encountered in %s features with model fitting; 
+              these features won't be adjusted for batch effects.\n",
+              n_moderr))
+  if (!all(mean.only.vec)) {
+    cat(sprintf("Found %s features with zero model variance within at least one batch; 
+                these features won't be adjusted for batch effects.\n",
+                n_zero_modvar_batch))
+  }
+}
+
+## Shrinkage application
+apply_shrinkage <- function(shrink, bv, params, batch, n_batch, batches_ind,
+                            feature.subset.n, ncores, mean.only, ref.batch, ref) {
+  if (shrink) {
+    cat("Apply shrinkage - computing posterior estimates for parameters\n")
+    mcint_fun <- monte_carlo_int_beta
+    monte_carlo_res <- lapply(1:n_batch, function(ii) {
+      if (ii == 1) {
+        mcres <- mcint_fun(dat = bv[, batches_ind[[ii]]], 
+                           mu = params$mu_hat_mat[, batches_ind[[ii]]], 
+                           gamma = params$gamma_hat_mat[, ii], 
+                           phi = params$phi_hat_mat[, batches_ind[[ii]]],
+                           delta = params$delta_hat_mat[, ii],
+                           feature.subset.n = feature.subset.n,
+                           ncores = ncores)
+      } else {
+        invisible(utils::capture.output(mcres <- mcint_fun(dat = bv[, batches_ind[[ii]]], 
+                                                           mu = params$mu_hat_mat[, batches_ind[[ii]]], 
+                                                           gamma = params$gamma_hat_mat[, ii], 
+                                                           phi = params$phi_hat_mat[, batches_ind[[ii]]], 
+                                                           delta = params$delta_hat_mat[, ii],
+                                                           feature.subset.n = feature.subset.n,
+                                                           ncores = ncores)))
+      }
+      return(mcres)
+    })
+    names(monte_carlo_res) <- paste0('batch', levels(batch))
+    
+    gamma_star_mat <- lapply(monte_carlo_res, function(res) {res$gamma_star})
+    gamma_star_mat <- do.call(cbind, gamma_star_mat)
+    delta_star_mat <- lapply(monte_carlo_res, function(res) {res$delta_star})
+    delta_star_mat <- do.call(cbind, delta_star_mat)
+    
+    ## set gamma and delta equal to 0 for reference batch (probably unnecessary, but just to make sure)
+    if (!is.null(ref.batch)) {
+      gamma_star_mat[, ref] <- 0
+      delta_star_mat[, ref] <- 0
+    }
+    
+    if (mean.only) {
+      cat("Apply shrinkage to mean only\n")
+      delta_star_mat <- params$delta_hat_mat
+    }
+  } else {
+    cat("Shrinkage off - using GLM estimates for parameters\n")
+    gamma_star_mat <- params$gamma_hat_mat
+    delta_star_mat <- params$delta_hat_mat
+  }
+  
+  return(list(gamma_star_mat = gamma_star_mat, delta_star_mat = delta_star_mat))
+}
+
+## Expand a vector into matrix (columns as the original vector)
+vec2mat_met <- function(vec, n_times) {
+  return(matrix(rep(vec, n_times), ncol = n_times, byrow = FALSE))
+}
+
+## Monte Carlo integration functions for beta distribution
+monte_carlo_int_beta <- function(dat, mu, gamma, phi, delta, feature.subset.n, ncores) {
+  cl <- parallel::makeCluster(ncores)
+  
+  MC_int <- function(i) {
+    pos_res <- c(gamma.star = NA, 
+                 delta.star = NA)
+    
+    m <- mu[-i, !is.na(dat[i, ])]
+    p <- phi[-i, !is.na(dat[i, ])]
+    x <- dat[i, !is.na(dat[i, ])]
+    gamma_sub <- gamma[-i]
+    delta_sub <- delta[-i]
+    
+    # take a subset of features to do integration - save time
+    if (!is.null(feature.subset.n) & is.numeric(feature.subset.n) & length(feature.subset.n) == 1) {
+      mcint_ind <- sample(1:(nrow(dat) - 1), feature.subset.n, replace = FALSE)
+      m <- m[mcint_ind, ]
+      p <- p[mcint_ind, ]
+      gamma_sub <- gamma_sub[mcint_ind]
+      delta_sub <- delta_sub[mcint_ind]
+      G_sub <- feature.subset.n
+    } else {
+      G_sub <- nrow(dat) - 1
+    }
+    
+    LH <- sapply(1:G_sub, function(j) {
+      prod(stats::dbeta(x, shape1 = m[j, ] * (p[j, ] * exp(delta_sub[j])), 
+                        shape2 = (1 - m[j, ]) * (p[j, ] * exp(delta_sub[j]))))
+    })
+    LH[is.na(LH)] <- 0
+    if (sum(LH) == 0 | is.na(sum(LH))){
+      pos_res <- c(gamma.star = as.numeric(gamma[i]),
+                   delta.star = as.numeric(delta[i]))
+    } else {
+      pos_res["gamma.star"] <- sum(gamma_sub * LH, na.rm = TRUE) / 
+        sum(LH[!is.na(gamma_sub)])
+      pos_res["delta.star"] <- sum(delta_sub * LH, na.rm = TRUE) / 
+        sum(LH[!is.na(delta_sub)])
+    }
+    return(pos_res)
+  }
+  
+  # run in parallel
+  pos_res_lst <- parallel::parLapply(cl, 1:nrow(dat), MC_int)
+  parallel::stopCluster(cl)
+  pos_res_mat <- do.call(rbind, pos_res_lst)
+  res <- list(gamma_star = pos_res_mat[, "gamma.star"], 
+              delta_star = pos_res_mat[, "delta.star"]) 
+  return(res)
+}
+
+## Data adjustment
+adjust_data <- function(vmatOri, dtype, keep, bv, params, adjusted_params, 
+                        batches_ind, mean.only) {
+  gamma_star_mat <- adjusted_params$gamma_star_mat
+  delta_star_mat <- adjusted_params$delta_star_mat
+  mu_hat_mat <- params$mu_hat_mat
+  phi_hat_mat <- params$phi_hat_mat
+  delta_hat_mat <- params$delta_hat_mat
+  
+  n_batch <- length(batches_ind)
+  n_batches <- sapply(batches_ind, length)
+  
+  mu_star_mat <- matrix(NA, nrow = nrow(bv), ncol = ncol(bv))
+  phi_star_mat <- phi_hat_mat
+  
+  for (jj in 1:n_batch) {
+    logit_mu_star_subset <- log(mu_hat_mat[, batches_ind[[jj]]] / (1 - mu_hat_mat[, batches_ind[[jj]]])) - 
+      vec2mat_met(gamma_star_mat[, jj], n_batches[jj])
+    mu_star_mat[, batches_ind[[jj]]] <- exp(logit_mu_star_subset) / (1 + exp(logit_mu_star_subset))
+    if (!mean.only) {
+      log_phi_star_subset <- log(phi_hat_mat[, batches_ind[[jj]]]) +
+        vec2mat_met(delta_hat_mat[, jj], n_batches[jj]) -
+        vec2mat_met(delta_star_mat[, jj], n_batches[jj])
+      phi_star_mat[, batches_ind[[jj]]] <- exp(log_phi_star_subset)
+    }
+  }
+  
+  cat("Adjusting the data\n")
+  adj_bv_raw <- matrix(NA, nrow = nrow(bv), ncol = ncol(bv))
+  for (kk in 1:n_batch) {
+    bv_sub <- bv[, batches_ind[[kk]]]
+    old_mu <- mu_hat_mat[, batches_ind[[kk]]]
+    old_phi <- phi_hat_mat[, batches_ind[[kk]]] * exp(delta_hat_mat[, kk])
+    new_mu <- mu_star_mat[, batches_ind[[kk]]]
+    new_phi <- phi_star_mat[, batches_ind[[kk]]]
+    adj_bv_raw[, batches_ind[[kk]]] <- match_quantiles_beta(bv_sub = bv_sub,
+                                                            old_mu = old_mu, 
+                                                            old_phi = old_phi, 
+                                                            new_mu = new_mu, 
+                                                            new_phi = new_phi)
+  }
+  
+  if (dtype == "b-value") {
+    adj_vmat <- vmatOri
+    adj_vmat[keep, ] <- adj_bv_raw
+  } else {
+    adj_vmat <- vmatOri
+    adj_vmat[keep, ] <- log(adj_bv_raw / (1 - adj_bv_raw))
+  }
+  return(adj_vmat)
+}
+
+## Match quantiles for beta distribution
+match_quantiles_beta <- function(bv_sub, old_mu, old_phi, new_mu, new_phi) {
+  new_bv_sub <- matrix(NA, nrow = nrow(bv_sub), ncol = ncol(bv_sub))
+  for (a in 1:nrow(bv_sub)) {
+    for (b in 1:ncol(bv_sub)) {
+      tmp_p <- stats::pbeta(bv_sub[a, b], shape1 = old_mu[a, b] * old_phi[a, b], 
+                            shape2 = (1 - old_mu[a, b]) * old_phi[a, b])
+      if (is.na(tmp_p)) {
+        new_bv_sub[a, b] <- bv_sub[a, b]  
+      } else {
+        new_bv_sub[a, b] <- stats::qbeta(tmp_p, shape1 = new_mu[a, b] * new_phi[a, b], 
+                                         shape2 = (1 - new_mu[a, b]) * new_phi[a, b])
+      }
+    }
+  }
+  return(new_bv_sub)
+}

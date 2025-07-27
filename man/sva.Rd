@@ -2,6 +2,7 @@
 % Please edit documentation in R/sva-package.R, R/sva.R
 \docType{package}
 \name{sva}
+\alias{sva-package}
 \alias{sva}
 \title{sva: a package for removing artifacts from microarray and sequencing data}
 \usage{
