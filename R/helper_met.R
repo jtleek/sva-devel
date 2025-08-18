@@ -1,5 +1,20 @@
 
-## Validation function
+#' Validate function inputs
+#' 
+#' Checks all input arguments for correct format, type, and consistency
+#' 
+#' @param vmat Matrix of beta/M values
+#' @param dtype Data type: beta value of M value
+#' @param batch Batch covariate
+#' @param group Group covariate
+#' @param pseudo_beta Value of extreme beta value replacement
+#' @return List of validated inputs:
+#' \itemize{
+#'   \item vmat: Validated matrix
+#'   \item batch: Factor-converted batch covariate
+#'   \item group: Factor-converted group covariate
+#' }
+#' @noRd
 validate_inputs <- function(vmat, dtype, batch, group, pseudo_beta) {
   ## check if vmat has the correct format
   if (!(is.matrix(vmat) && is.numeric(vmat))) {
@@ -51,7 +66,23 @@ validate_inputs <- function(vmat, dtype, batch, group, pseudo_beta) {
   return(list(vmat = vmat, batch = batch, group = group))
 }
 
-## Data preprocessing
+#' Preprocess data
+#' 
+#' Handles extreme values and special cases
+#' 
+#' @param vmat Matrix of values
+#' @param dtype Data type: beta value or M value
+#' @param batch Batch covariate
+#' @param mean.only Logical indicating whether to apply mean-only correction
+#' @param pseudo_beta Value of extreme beta value replacement
+#' @return List containing:
+#' \itemize{
+#'   \item vmatOri: Original data matrix
+#'   \item vmat: Processed data matrix
+#'   \item keep: Indices of retained features
+#'   \item mean.only.vec: Logical vector indicating whether to apply mean-only correction for each feature
+#' }
+#' @noRd
 preprocess_data <- function(vmat, dtype, batch, mean.only, pseudo_beta) {
   ## convert extreme 0 or 1 values to pseudo-beta
   if (dtype == "b-value") {
@@ -87,7 +118,24 @@ preprocess_data <- function(vmat, dtype, batch, mean.only, pseudo_beta) {
   return(list(vmatOri = vmatOri, vmat = vmat, keep = keep, mean.only.vec = mean.only.vec))
 }
 
-## Design matrix preparation
+#' Prepare design matrices
+#' 
+#' Creates design matrices for batch, group, and biological variables
+#' 
+#' @param batch Batch covariate
+#' @param group Group covariate
+#' @param covar_mod Covariate matrix excluding batch and group
+#' @param full_mod Logical indicating whether to account for the group covariate
+#' @param ref.batch Name of reference batch
+#' @return List containing
+#' \itemize{
+#'   \item design: Design matrix
+#'   \item batchmod: Batch design matrix
+#'   \item n_batch: Number of batches
+#'   \item batches_ind: List of samples in each batch
+#'   \item ref: Integer index of reference batch
+#' }
+#' @noRd
 prepare_design_matrices <- function(batch, group, covar_mod, full_mod, ref.batch) {
   # number of batches
   n_batch <- nlevels(batch)
@@ -138,7 +186,14 @@ prepare_design_matrices <- function(batch, group, covar_mod, full_mod, ref.batch
   return(list(design = design, batchmod = batchmod, n_batch = n_batch, batches_ind = batches_ind, ref = ref))
 }
 
-## Check if the design is confounded
+#' Check for confounded designs
+#' 
+#' Check if the design matrix is confounded
+#' 
+#' @param design Design matrix
+#' @param n_batch Number of batches
+#' @return No return value; throws errors if confounded
+#' @noRd
 handle_confounded_design <- function(design, n_batch) {
   if (ncol(design) == (n_batch+1)) {
     stop("The covariate is confounded with batch! Remove the covariate and rerun ComBat-met.")
@@ -154,7 +209,14 @@ handle_confounded_design <- function(design, n_batch) {
   }
 }
 
-## Data conversion
+#' Convert M values to beta values
+#' 
+#' Transforms M values to beta values when needed
+#' 
+#' @param vmat Matrix of values
+#' @param dtype Data type: beta value or M value
+#' @return Matrix of beta values
+#' @noRd 
 convert_to_beta_values <- function(vmat, dtype) {
   ## convert M-values to beta-values if needed
   if (dtype == "b-value") {
@@ -164,7 +226,21 @@ convert_to_beta_values <- function(vmat, dtype) {
   }
 }
 
-## Parameter estimation
+#' Estimate GLM parameters
+#' 
+#' Fits beta regression models to estimate batch effects and other parameters
+#' 
+#' @param bv Matrix of beta values
+#' @param design Design matrix
+#' @param batchmod Batch design matrix
+#' @param n_batch Number of batches
+#' @param batches_ind List of samples in each batch
+#' @param mean.only.vec Logical vector indicating whether to apply mean-only correction for each feature
+#' @param ref.batch Name of reference batch
+#' @param ref Integer index of reference batch
+#' @param ncores Number of cores for parallel processing
+#' @return List of processed estimation results
+#' @noRd
 estimate_parameters <- function(bv, design, batchmod, n_batch, batches_ind,
                                 mean.only.vec, ref.batch, ref, ncores) {
   cat("Fitting the GLM model\n")
@@ -192,21 +268,47 @@ estimate_parameters <- function(bv, design, batchmod, n_batch, batches_ind,
   return(processed_results)
 }
 
-## Validate number of cores
+#' Validate number of cores
+#' 
+#' Checks if the ncores parameter is valid (positive integer)
+#' 
+#' @param ncores Number of cores to use for parallel processing
+#' @return No return value; throws error if validation fails.
+#' @noRd
 validate_ncores <- function(ncores) {
   if (!is.numeric(ncores) || ncores != as.integer(ncores) || ncores <= 0) {
     stop("ncores must be a positive integer.")
   }
 }
 
-## Set up parallel processing
+#' Set up parallel processing
+#' 
+#' Initializes parallel processing with specified number of cores
+#' 
+#' @param ncores Number of cores to use for parallel processing
+#' @return A parallel cluster object
+#' @noRd
 setup_parallel_processing <- function(ncores) {
   num_cores <- max(1, parallel::detectCores() - 1)
   num_cores <- min(ncores, num_cores)
   parallel::makeCluster(num_cores)
 }
 
-## Run parallel estimation
+#' Run parameter estimation in parallel
+#' 
+#' Executes parameter estimation across multiple cores
+#' 
+#' @param cl Parallel cluster object
+#' @param bv Matrix of beta values
+#' @param design Design matrix
+#' @param batchmod Batch design matrix
+#' @param n_batch Number of batches
+#' @param batches_ind List of samples in each batch
+#' @param mean.only.vec Logical vector to indicate whether to apply mean-only correction for each feature
+#' @param ref.batch Name of reference batch
+#' @param ref Integer index of reference batch
+#' @return List of estimation results for each feature
+#' @noRd
 run_parallel_estimation <- function(cl, bv, design, batchmod, n_batch, batches_ind,
                                     mean.only.vec, ref.batch, ref) {
   parallel::clusterExport(cl, varlist = c("bv", "design", "batchmod", "n_batch", "batches_ind",
@@ -225,7 +327,21 @@ run_parallel_estimation <- function(cl, bv, design, batchmod, n_batch, batches_i
   })
 }
 
-## Estimate a single feature
+#' Estimate parameters for a single feature
+#' 
+#' Performs parameter estimation for one feature (row) in the methylation data matrix
+#' 
+#' @param k Row index of feature to estimate
+#' @param bv Matrix of beta values
+#' @param design Design matrix
+#' @param batchmod Batch design matrix
+#' @param n_batch Number of batches
+#' @param batches_ind List of samples in each batch
+#' @param mean.only.vec Logical vector to indicate whether to apply mean-only correction for each feature
+#' @param ref.batch Name of reference batch
+#' @param ref Integer index of reference batch
+#' @return List containing estimated parameters and any issues encountered
+#' @noRd
 estimate_single_feature <- function(k, bv, design, batchmod, n_batch, batches_ind,
                                     mean.only.vec, ref.batch, ref) {
   result<- list(gamma_hat = NULL, mu_hat = NULL, phi_hat = NULL, delta_hat = NULL,
@@ -252,7 +368,20 @@ estimate_single_feature <- function(k, bv, design, batchmod, n_batch, batches_in
   calculate_parameters(glm_fit, n_batch, batchmod, na_check$nona, ref.batch, ref, mean.only.vec[k])
 }
 
-## Check whether the matrix contains NAs
+#' Check whether the methylation data matrix contains NAs
+#' 
+#' Identifies and handles NA values in the methylation data matrix
+#' 
+#' @param k Row index of feature to check
+#' @param design Design matrix
+#' @param bv Matrix of beta values
+#' @return List containing:
+#' \itemize{
+#'   \item has_issue: Logical indicating whether NA issues were found
+#'   \item result: If has_issue=TRUE, contains error result
+#'   \item nona: If has_issue=FALSE, contains non-NA indices
+#' }
+#' @noRd
 check_na_values <- function(k, design, bv) {
   # mark rows with NA values
   full_mat <- cbind(design, bv[k, ])
@@ -268,7 +397,24 @@ check_na_values <- function(k, design, bv) {
   list(has_issue = FALSE, nona = nona)
 }
 
-## Check model variance
+#' Check model variance
+#' 
+#' Verifies that the model has sufficient variance for parameter estimation
+#' 
+#' @param k Row index of feature to check
+#' @param design Design matrix
+#' @param bv Matrix of beta values
+#' @param batchmod Batch design matrix
+#' @param n_batch Number of batches
+#' @param batches_ind List of samples in each batch
+#' @param mean.only.vec Logical vector to indicate whether to apply mean-only correction for each feature
+#' @param nona Indices of non-NA values
+#' @return List containing:
+#' \itemize{
+#'   \item has_issue: Logical indicating whether variance issues were found
+#'   \item result: if has_issue=TRUE, contains error result
+#' }
+#' @noRd
 check_model_variance <- function(k, design, bv, batchmod, n_batch, batches_ind,
                                  mean.only.vec, nona) {
   full_mat <- cbind(design, bv[k, ])
@@ -295,7 +441,18 @@ check_model_variance <- function(k, design, bv, batchmod, n_batch, batches_ind,
   list(has_issue = FALSE)
 }
 
-## Fit GLM
+#' Fit GLM for a feature
+#' 
+#' Fits beta regression model for a single feature
+#' 
+#' @param k Row index of feature to fit
+#' @param bv Matrix of beta values
+#' @param design Design matrix
+#' @param batchmod Batch design matrix
+#' @param mean.only.vec Logical vector indicating whether to apply mean-only correction for each feature
+#' @param nona Indices of non-NA values
+#' @return Fitted model object or error object if fitting failed
+#' @noRd
 fit_glm_model <- function(k, bv, design, batchmod, mean.only.vec, nona) {
   # model fit
   if (mean.only.vec[k]) {
@@ -314,7 +471,28 @@ fit_glm_model <- function(k, bv, design, batchmod, mean.only.vec, nona) {
   }
 }
 
-## Calculate parameters
+#' Calculate parameters from GLM fit
+#' 
+#' Extracts and calculates parameters from fitted GLM
+#' 
+#' @param glm_f Fitted GLM object
+#' @param n_batch Number of batches
+#' @param batchmod Batch design matrix
+#' @param nona Indices of non-NA values
+#' @param ref.batch Name of reference batch
+#' @param ref Integer index of reference batch
+#' @param tmp.mean.only Logical indicating whether to apply mean-only correction for the selected feature
+#' @return List containing estimated parameters:
+#' \itemize{
+#'   \item gamma_hat: Estimated additive mean batch effects within each batch
+#'   \item mu_hat: Estimated average mean across batches
+#'   \item phi_hat: Estimated average precision across batches
+#'   \item delta_hat: Estimated precision batch effects within each batch
+#'   \item zero_modvar: Flag for zero model variance
+#'   \item zero_modvar_batch: Flag for zero variance within batch
+#'   \item moderr: Flag for model fitting error
+#' }
+#' @noRd
 calculate_parameters <- function(glm_f, n_batch, batchmod, nona, ref.batch, ref, 
                                  tmp.mean.only) {
   result <- list(gamma_hat = NULL, mu_hat = NULL, phi_hat = NULL, delta_hat = NULL,
@@ -354,7 +532,23 @@ calculate_parameters <- function(glm_f, n_batch, batchmod, nona, ref.batch, ref,
   result
 }
 
-## Process estimation results
+#' Process estimation results
+#' 
+#' Converts list of results into matrices and counts issues
+#' 
+#' @param result_lst List of parameter estimation results for all features
+#' @param n_batch Number of batches
+#' @return List containing:
+#' \itemize{
+#'   \item gamma_hat_mat: Matrix of additive mean batch effects within each batch
+#'   \item mu_hat_mat: Matrix of estimated average mean across batches
+#'   \item phi_hat_mat: Matrix of estimated average precision across batches
+#'   \item delta_hat_mat: Matrix of precision batch effects within each batch
+#'   \item n_zero_modvar: Count of features with zero model variance
+#'   \item n_zero_modvar_batch: Count of features with zero variance within batch
+#'   \item n_moderr: Count of model fitting errors
+#' }
+#' @noRd
 process_estimation_results <- function(result_lst, n_batch) {
   gamma_hat_lst <- lapply(result_lst, function(x) x$gamma_hat)
   mu_hat_lst <- lapply(result_lst, function(x) x$mu_hat)
@@ -383,7 +577,16 @@ process_estimation_results <- function(result_lst, n_batch) {
   )
 }
 
-## Report estimation issues
+#' Report estimation issues
+#' 
+#' Prints summary of any issues encountered during parameter estimation
+#' 
+#' @param n_zero_modvar Count of features with zero model variance
+#' @param n_zero_modvar_batch Count of features with zero variance within batch
+#' @param n_moderr Count of model fitting errors
+#' @param mean.only.vec Logical vector indicating whether to apply mean-only correction for each feature
+#' @return No return value; prints messages to console
+#' @noRd
 report_estimation_issues <- function(n_zero_modvar, n_zero_modvar_batch,
                                      n_moderr, mean.only.vec) {
   cat(sprintf("Found %s features with zero model variance; 
@@ -399,7 +602,27 @@ report_estimation_issues <- function(n_zero_modvar, n_zero_modvar_batch,
   }
 }
 
-## Shrinkage application
+#' Applies shrinkage to batch effect estimation
+#' 
+#' Computes posterior parameter estimates using Monte Carlo integration when shrink=TRUE; otherwise returns original GLM estimates
+#' 
+#' @param shrink Logical indicating whether to apply shrinkage correction
+#' @param bv Matrix of beta values
+#' @param params List containing GLM estimates
+#' @param batch Batch covariate
+#' @param n_batch Number of batches
+#' @param batches_ind List of samples in each batch
+#' @param feature.subset.n Number of features to subset for faster computation
+#' @param ncores Number of cores for parallel processing
+#' @param mean.only Logical indicating whether to apply mean batch effects only
+#' @param ref.batch Name of reference batch
+#' @param ref Integer index of reference batch
+#' @return List containing:
+#' \itemize{
+#'   \item gamma_star_mat: Matrix of shrunken additive mean batch effects within each batch
+#'   \item delta_star_mat: Matrix of shrunken precision batch effects within each batch
+#' }
+#' @noRd
 apply_shrinkage <- function(shrink, bv, params, batch, n_batch, batches_ind,
                             feature.subset.n, ncores, mean.only, ref.batch, ref) {
   if (shrink) {
@@ -451,12 +674,35 @@ apply_shrinkage <- function(shrink, bv, params, batch, n_batch, batches_ind,
   return(list(gamma_star_mat = gamma_star_mat, delta_star_mat = delta_star_mat))
 }
 
-## Expand a vector into matrix (columns as the original vector)
+#' Replicate vector to matrix
+#' 
+#' Expands a vector into a matrix by replicating it column-wise n_times
+#' 
+#' @param vec Numeric vector to replicate
+#' @param n_times Number of times to replicate
+#' @return Matrix with n_times columns, each identical to vec
+#' @noRd
 vec2mat_met <- function(vec, n_times) {
   return(matrix(rep(vec, n_times), ncol = n_times, byrow = FALSE))
 }
 
-## Monte Carlo integration functions for beta distribution
+#' Monte Carlo integration for beta distribution
+#' 
+#' Computes posterior parameter estimates through Monte Carlo integration of beta likelihoods
+#' 
+#' @param dat Matrix of beta values for one batch
+#' @param mu Matrix of GLM fitted average means across batches, for the selected batch
+#' @param gamma Vector of additive mean batch effects, for the selected batch
+#' @param phi Matrix of average precisions across batches, for the selected batch
+#' @param delta Vector of precision batch effects, for the selected batch
+#' @param feature.subset.n Subset size for faster computation
+#' @param ncores Number of cores for parallel processing
+#' @return List containing:
+#' \itemize{
+#'   \item gamma_star: Posterior estimates of additive mean batch effects, for the selected batch
+#'   \item delta_star: Posterior estimates of precision batch effects, for the selected batch
+#' }
+#' @noRd
 monte_carlo_int_beta <- function(dat, mu, gamma, phi, delta, feature.subset.n, ncores) {
   cl <- parallel::makeCluster(ncores)
   
@@ -508,7 +754,20 @@ monte_carlo_int_beta <- function(dat, mu, gamma, phi, delta, feature.subset.n, n
   return(res)
 }
 
-## Data adjustment
+#' Adjust data for batch effects
+#' 
+#' Removes batch effects from beta/M values
+#' 
+#' @param vmatOri Original data matrix
+#' @param dtype Data type: beta value or M value
+#' @param keep Indices of features being adjusted
+#' @param bv Matrix of beta values
+#' @param params List of GLM estimates
+#' @param adjusted_params List of shrunken estimates
+#' @param batches_ind List of samples in each batch
+#' @param mean.only Logical indicating whether to apply mean-only correction
+#' @return Batch-adjusted matrix matching input dimensions
+#' @noRd
 adjust_data <- function(vmatOri, dtype, keep, bv, params, adjusted_params, 
                         batches_ind, mean.only) {
   gamma_star_mat <- adjusted_params$gamma_star_mat
@@ -560,7 +819,17 @@ adjust_data <- function(vmatOri, dtype, keep, bv, params, adjusted_params,
   return(adj_vmat)
 }
 
-## Match quantiles for beta distribution
+#' Match quantiles for beta-distributed data
+#' 
+#' Adjusts beta values to match target distribution quantiles
+#' 
+#' @param bv_sub Matrix of beta values for one batch
+#' @param old_mu Original means
+#' @param old_phi Original precisions
+#' @param new_mu Target means
+#' @param new_phi Target precisions
+#' @return Matrix of adjusted beta values
+#' @noRd
 match_quantiles_beta <- function(bv_sub, old_mu, old_phi, new_mu, new_phi) {
   new_bv_sub <- matrix(NA, nrow = nrow(bv_sub), ncol = ncol(bv_sub))
   for (a in 1:nrow(bv_sub)) {
