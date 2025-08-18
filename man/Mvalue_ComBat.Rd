@@ -71,3 +71,6 @@ adj_mv_mat <- Mvalue_ComBat(mv_mat, dtype = "M-value", batch = batch,
 group = group, full_mod = FALSE)
 
 }
+\references{
+Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
+}

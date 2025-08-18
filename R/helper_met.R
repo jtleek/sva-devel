@@ -1,3 +1,7 @@
+# Helper functions for ComBat_met
+# 
+# When using ComBat_met, Mvalue_ComBat, and all functions listed in this script, please cite: Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
+# Please reach out to the authors with any questions about these functions.
 
 #' Validate function inputs
 #' 

@@ -19,6 +19,8 @@
 #' @param ncores number of cores to be used for parallel computing. By default, ncores is set to one.
 #' 
 #' @return \code{ComBat_met} returns a feature x sample matrix with the same data type as input, adjusted for batch effects.
+#' @references 
+#' Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
 #' @export
 #' 
 #' @examples

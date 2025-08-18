@@ -30,7 +30,7 @@ Description: The sva package contains functions for removing batch
 Maintainer: Jeffrey T. Leek <jtleek@gmail.com>, John D. Storey
     <jstorey@princeton.edu>, W. Evan Johnson <wej@bu.edu>
 Depends:
-    R (>= 3.2),
+    R (>= 3.6),
     mgcv,
     genefilter,
     BiocParallel
