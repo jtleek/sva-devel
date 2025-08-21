@@ -24,7 +24,7 @@ validate_inputs <- function(vmat, dtype, batch, group, pseudo_beta) {
   if (!(is.matrix(vmat) && is.numeric(vmat))) {
     if (is.data.frame(vmat) && all(sapply(vmat, is.numeric))) {
       vmat <- as.matrix(vmat)
-      cat("Input is numeric.\n")
+      message("Input is numeric.")
     } else {
       stop("vmat must be a matrix of beta-values or M-values, or a SummarizedExperiment object.")
     }
@@ -96,7 +96,7 @@ preprocess_data <- function(vmat, dtype, batch, mean.only, pseudo_beta) {
   
   ## Correct for mean batch effects only if any batch has only 1 sample
   if (any(table(batch) == 1)) {
-    cat("At least one batch contains only 1 sample. Only mean batch effects will be corrected.\n")
+    message("At least one batch contains only 1 sample. Only mean batch effects will be corrected.")
     mean.only <- TRUE
   }
   
@@ -107,9 +107,9 @@ preprocess_data <- function(vmat, dtype, batch, mean.only, pseudo_beta) {
   all.zero.var.rows <- Reduce(intersect, zero.var.rows.lst)
   
   if (length(all.zero.var.rows) > 0) {
-    cat(sprintf("Found %s features with uniform values across all batches; 
-                these features will not be adjusted for batch effects.\n",
-                length(all.zero.var.rows)))
+    message(sprintf("Found %s features with uniform values across all batches; 
+                    these features will not be adjusted for batch effects.",
+                    length(all.zero.var.rows)))
   }
   
   keep <- setdiff(1:nrow(vmat), all.zero.var.rows)
@@ -150,10 +150,10 @@ prepare_design_matrices <- function(batch, group, covar_mod, full_mod, ref.batch
 
   # biological condition matrix
   if (full_mod & !is.null(group) & nlevels(group) > 1) {
-    cat("Using full model in ComBat-met.\n")
+    message("Using full model in ComBat-met.")
     mod <- stats::model.matrix(~group)
   } else {
-    cat("Using null model in ComBat-met.\n")
+    message("Using null model in ComBat-met.")
     mod <- stats::model.matrix(~1, data = as.data.frame(batch))
   }
   # covariate matrix
@@ -171,7 +171,7 @@ prepare_design_matrices <- function(batch, group, covar_mod, full_mod, ref.batch
     if (!(ref.batch %in% levels(batch))) {
       stop("Reference level ref. batch is not one of the levels of the batch variable.")
     }
-    cat(sprintf("Using batch %s as the reference batch\n", ref.batch))
+    message(sprintf("Using batch %s as the reference batch", ref.batch))
     ref <- which(levels(batch) == ref.batch)
   } else {
     ref <- NULL
@@ -181,7 +181,7 @@ prepare_design_matrices <- function(batch, group, covar_mod, full_mod, ref.batch
   ## Check for intercept in covariates, and drop if present
   check <- apply(design, 2, function(x) all(x == 1))
   design <- as.matrix(design[, !check])
-  cat("Adjusting for", ncol(design) - ncol(batchmod), 'covariate(s) or covariate level(s).\n')
+  message("Adjusting for ", ncol(design) - ncol(batchmod), ' covariate(s) or covariate level(s).')
   
   if (qr(design)$rank < ncol(design)) {
     handle_confounded_design(design, n_batch)
@@ -247,7 +247,7 @@ convert_to_beta_values <- function(vmat, dtype) {
 #' @noRd
 estimate_parameters <- function(bv, design, batchmod, n_batch, batches_ind,
                                 mean.only.vec, ref.batch, ref, ncores) {
-  cat("Fitting the GLM model\n")
+  message("Fitting the GLM model")
   
   # Validate ncores
   validate_ncores(ncores)
@@ -593,16 +593,16 @@ process_estimation_results <- function(result_lst, n_batch) {
 #' @noRd
 report_estimation_issues <- function(n_zero_modvar, n_zero_modvar_batch,
                                      n_moderr, mean.only.vec) {
-  cat(sprintf("Found %s features with zero model variance; 
-              these features won't be adjusted for batch effects.\n",
-              n_zero_modvar))
-  cat(sprintf("Errors encountered in %s features with model fitting; 
-              these features won't be adjusted for batch effects.\n",
-              n_moderr))
+  message(sprintf("Found %s features with zero model variance; 
+                  these features won't be adjusted for batch effects.",
+                  n_zero_modvar))
+  message(sprintf("Errors encountered in %s features with model fitting; 
+                  these features won't be adjusted for batch effects.",
+                  n_moderr))
   if (!all(mean.only.vec)) {
-    cat(sprintf("Found %s features with zero model variance within at least one batch; 
-                these features won't be adjusted for batch effects.\n",
-                n_zero_modvar_batch))
+    message(sprintf("Found %s features with zero model variance within at least one batch; 
+                    these features won't be adjusted for batch effects.",
+                    n_zero_modvar_batch))
   }
 }
 
@@ -630,7 +630,7 @@ report_estimation_issues <- function(n_zero_modvar, n_zero_modvar_batch,
 apply_shrinkage <- function(shrink, bv, params, batch, n_batch, batches_ind,
                             feature.subset.n, ncores, mean.only, ref.batch, ref) {
   if (shrink) {
-    cat("Apply shrinkage - computing posterior estimates for parameters\n")
+    message("Apply shrinkage - computing posterior estimates for parameters")
     mcint_fun <- monte_carlo_int_beta
     monte_carlo_res <- lapply(1:n_batch, function(ii) {
       if (ii == 1) {
@@ -666,11 +666,11 @@ apply_shrinkage <- function(shrink, bv, params, batch, n_batch, batches_ind,
     }
     
     if (mean.only) {
-      cat("Apply shrinkage to mean only\n")
+      message("Apply shrinkage to mean only")
       delta_star_mat <- params$delta_hat_mat
     }
   } else {
-    cat("Shrinkage off - using GLM estimates for parameters\n")
+    message("Shrinkage off - using GLM estimates for parameters")
     gamma_star_mat <- params$gamma_hat_mat
     delta_star_mat <- params$delta_hat_mat
   }
@@ -798,7 +798,7 @@ adjust_data <- function(vmatOri, dtype, keep, bv, params, adjusted_params,
     }
   }
   
-  cat("Adjusting the data\n")
+  message("Adjusting the data")
   adj_bv_raw <- matrix(NA, nrow = nrow(bv), ncol = ncol(bv))
   for (kk in 1:n_batch) {
     bv_sub <- bv[, batches_ind[[kk]]]
