@@ -112,7 +112,7 @@ preprocess_data <- function(vmat, dtype, batch, mean.only, pseudo_beta) {
                     length(all.zero.var.rows)))
   }
   
-  keep <- setdiff(1:nrow(vmat), all.zero.var.rows)
+  keep <- setdiff(seq_len(nrow(vmat)), all.zero.var.rows)
   vmatOri <- vmat
   vmat <- vmatOri[keep, ]
   
@@ -144,7 +144,7 @@ prepare_design_matrices <- function(batch, group, covar_mod, full_mod, ref.batch
   # number of batches
   n_batch <- nlevels(batch)
   # list of samples in each batch
-  batches_ind <- lapply(1:n_batch, function(i) {
+  batches_ind <- lapply(seq_len(n_batch), function(i) {
     which(batch == levels(batch)[i])
   })
 
@@ -159,7 +159,7 @@ prepare_design_matrices <- function(batch, group, covar_mod, full_mod, ref.batch
   # covariate matrix
   if (!is.null(covar_mod)) {
     if (is.data.frame(covar_mod)) {
-      covar_mod <- do.call(cbind, lapply(1:ncol(covar_mod), function(i) {
+      covar_mod <- do.call(cbind, lapply(seq_len(ncol(covar_mod)), function(i) {
         stats::model.matrix(~covar_mod[, i])
       }))
     }
@@ -203,7 +203,7 @@ handle_confounded_design <- function(design, n_batch) {
     stop("The covariate is confounded with batch! Remove the covariate and rerun ComBat-met.")
   }
   if (ncol(design) > (n_batch+1)) {
-    if ((qr(design[, -c(1:n_batch)])$rank < ncol(design[, -c(1:n_batch)]))) {
+    if ((qr(design[, -c(seq_len(n_batch))])$rank < ncol(design[, -c(seq_len(n_batch))]))) {
       stop('The covariates are confounded! Please remove one or more of the covariates 
              so the design is not confounded.')
     } else {
@@ -325,7 +325,7 @@ run_parallel_estimation <- function(cl, bv, design, batchmod, n_batch, batches_i
                           envir = environment())
   
   # run in parallel
-  parallel::parLapply(cl, 1:nrow(bv), function(k) {
+  parallel::parLapply(cl, seq_len(nrow(bv)), function(k) {
     estimate_single_feature(k, bv, design, batchmod, n_batch, batches_ind,
                             mean.only.vec, ref.batch, ref)
   })
@@ -432,7 +432,7 @@ check_model_variance <- function(k, design, bv, batchmod, n_batch, batches_ind,
   
   # if precision correction enabled, check whether the model has zero model variance within any batch
   if (!mean.only.vec[k]) {
-    for (i in 1:length(batches_ind)) {
+    for (i in seq_len(length(batches_ind))) {
       if (qr(full_mat[intersect(batches_ind[[i]], nona), c(i, (n_batch+1):ncol(full_mat))])$rank < 
           ncol(full_mat) - n_batch + 1) {
         return(list(has_issue = TRUE,
@@ -506,7 +506,7 @@ calculate_parameters <- function(glm_f, n_batch, batchmod, nona, ref.batch, ref,
   if (!is.null(ref.batch)) {
     alpha_x <- glm_f$coefficients$mean[ref]
   } else {
-    alpha_x <- glm_f$coefficients$mean[1:n_batch] %*% 
+    alpha_x <- glm_f$coefficients$mean[seq_len(n_batch)] %*% 
       as.matrix(colSums(batchmod[nona, ]) / length(nona))
   }
   
@@ -522,7 +522,7 @@ calculate_parameters <- function(glm_f, n_batch, batchmod, nona, ref.batch, ref,
   }
   
   # estimate parameters
-  result$gamma_hat <- glm_f$coefficients$mean[1:n_batch] - as.numeric(alpha_x)
+  result$gamma_hat <- glm_f$coefficients$mean[seq_len(n_batch)] - as.numeric(alpha_x)
   result$mu_hat <- rep(NA, nrow(batchmod))
   result$mu_hat[nona] <- glm_f$fitted.values
   result$phi_hat <- as.numeric(exp(alpha_z)) * rep(1, nrow(batchmod))
@@ -632,7 +632,7 @@ apply_shrinkage <- function(shrink, bv, params, batch, n_batch, batches_ind,
   if (shrink) {
     message("Apply shrinkage - computing posterior estimates for parameters")
     mcint_fun <- monte_carlo_int_beta
-    monte_carlo_res <- lapply(1:n_batch, function(ii) {
+    monte_carlo_res <- lapply(seq_len(n_batch), function(ii) {
       if (ii == 1) {
         mcres <- mcint_fun(dat = bv[, batches_ind[[ii]]], 
                            mu = params$mu_hat_mat[, batches_ind[[ii]]], 
@@ -722,7 +722,7 @@ monte_carlo_int_beta <- function(dat, mu, gamma, phi, delta, feature.subset.n, n
     
     # take a subset of features to do integration - save time
     if (!is.null(feature.subset.n) & is.numeric(feature.subset.n) & length(feature.subset.n) == 1) {
-      mcint_ind <- sample(1:(nrow(dat) - 1), feature.subset.n, replace = FALSE)
+      mcint_ind <- sample(seq_len(nrow(dat) - 1), feature.subset.n, replace = FALSE)
       m <- m[mcint_ind, ]
       p <- p[mcint_ind, ]
       gamma_sub <- gamma_sub[mcint_ind]
@@ -732,7 +732,7 @@ monte_carlo_int_beta <- function(dat, mu, gamma, phi, delta, feature.subset.n, n
       G_sub <- nrow(dat) - 1
     }
     
-    LH <- sapply(1:G_sub, function(j) {
+    LH <- sapply(seq_len(G_sub), function(j) {
       prod(stats::dbeta(x, shape1 = m[j, ] * (p[j, ] * exp(delta_sub[j])), 
                         shape2 = (1 - m[j, ]) * (p[j, ] * exp(delta_sub[j]))))
     })
@@ -750,7 +750,7 @@ monte_carlo_int_beta <- function(dat, mu, gamma, phi, delta, feature.subset.n, n
   }
   
   # run in parallel
-  pos_res_lst <- parallel::parLapply(cl, 1:nrow(dat), MC_int)
+  pos_res_lst <- parallel::parLapply(cl, seq_len(nrow(dat)), MC_int)
   parallel::stopCluster(cl)
   pos_res_mat <- do.call(rbind, pos_res_lst)
   res <- list(gamma_star = pos_res_mat[, "gamma.star"], 
@@ -786,7 +786,7 @@ adjust_data <- function(vmatOri, dtype, keep, bv, params, adjusted_params,
   mu_star_mat <- matrix(NA, nrow = nrow(bv), ncol = ncol(bv))
   phi_star_mat <- phi_hat_mat
   
-  for (jj in 1:n_batch) {
+  for (jj in seq_len(n_batch)) {
     logit_mu_star_subset <- log(mu_hat_mat[, batches_ind[[jj]]] / (1 - mu_hat_mat[, batches_ind[[jj]]])) - 
       vec2mat_met(gamma_star_mat[, jj], n_batches[jj])
     mu_star_mat[, batches_ind[[jj]]] <- exp(logit_mu_star_subset) / (1 + exp(logit_mu_star_subset))
@@ -800,7 +800,7 @@ adjust_data <- function(vmatOri, dtype, keep, bv, params, adjusted_params,
   
   message("Adjusting the data")
   adj_bv_raw <- matrix(NA, nrow = nrow(bv), ncol = ncol(bv))
-  for (kk in 1:n_batch) {
+  for (kk in seq_len(n_batch)) {
     bv_sub <- bv[, batches_ind[[kk]]]
     old_mu <- mu_hat_mat[, batches_ind[[kk]]]
     old_phi <- phi_hat_mat[, batches_ind[[kk]]] * exp(delta_hat_mat[, kk])
@@ -836,8 +836,8 @@ adjust_data <- function(vmatOri, dtype, keep, bv, params, adjusted_params,
 #' @noRd
 match_quantiles_beta <- function(bv_sub, old_mu, old_phi, new_mu, new_phi) {
   new_bv_sub <- matrix(NA, nrow = nrow(bv_sub), ncol = ncol(bv_sub))
-  for (a in 1:nrow(bv_sub)) {
-    for (b in 1:ncol(bv_sub)) {
+  for (a in seq_len(nrow(bv_sub))) {
+    for (b in seq_len(ncol(bv_sub))) {
       tmp_p <- stats::pbeta(bv_sub[a, b], shape1 = old_mu[a, b] * old_phi[a, b], 
                             shape2 = (1 - old_mu[a, b]) * old_phi[a, b])
       if (is.na(tmp_p)) {
