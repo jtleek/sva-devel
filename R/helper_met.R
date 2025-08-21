@@ -22,7 +22,7 @@
 validate_inputs <- function(vmat, dtype, batch, group, pseudo_beta) {
   ## check if vmat has the correct format
   if (!(is.matrix(vmat) && is.numeric(vmat))) {
-    if (is.data.frame(vmat) && all(sapply(vmat, is.numeric))) {
+    if (is.data.frame(vmat) && all(vapply(vmat, is.numeric, logical(1)))) {
       vmat <- as.matrix(vmat)
       message("Input is numeric.")
     } else {
@@ -564,10 +564,10 @@ process_estimation_results <- function(result_lst, n_batch) {
   n_moderr <- sum(unlist(lapply(result_lst, function(x) x$moderr)))
   
   # convert NULLs to NAs
-  gamma_hat_lst[sapply(gamma_hat_lst, is.null)] <- NA
-  mu_hat_lst[sapply(mu_hat_lst, is.null)] <- NA
-  phi_hat_lst[sapply(phi_hat_lst, is.null)] <- NA
-  delta_hat_lst[sapply(delta_hat_lst, is.null)] <- NA
+  gamma_hat_lst[vapply(gamma_hat_lst, is.null, logical(1))] <- NA
+  mu_hat_lst[vapply(mu_hat_lst, is.null, logical(1))] <- NA
+  phi_hat_lst[vapply(phi_hat_lst, is.null, logical(1))] <- NA
+  delta_hat_lst[vapply(delta_hat_lst, is.null, logical(1))] <- NA
   
   # reformat lists as matrices
   list(
@@ -732,10 +732,10 @@ monte_carlo_int_beta <- function(dat, mu, gamma, phi, delta, feature.subset.n, n
       G_sub <- nrow(dat) - 1
     }
     
-    LH <- sapply(seq_len(G_sub), function(j) {
+    LH <- vapply(seq_len(G_sub), function(j) {
       prod(stats::dbeta(x, shape1 = m[j, ] * (p[j, ] * exp(delta_sub[j])), 
                         shape2 = (1 - m[j, ]) * (p[j, ] * exp(delta_sub[j]))))
-    })
+    }, numeric(1))
     LH[is.na(LH)] <- 0
     if (sum(LH) == 0 | is.na(sum(LH))){
       pos_res <- c(gamma.star = as.numeric(gamma[i]),
@@ -781,7 +781,7 @@ adjust_data <- function(vmatOri, dtype, keep, bv, params, adjusted_params,
   delta_hat_mat <- params$delta_hat_mat
   
   n_batch <- length(batches_ind)
-  n_batches <- sapply(batches_ind, length)
+  n_batches <- vapply(batches_ind, length, integer(1))
   
   mu_star_mat <- matrix(NA, nrow = nrow(bv), ncol = ncol(bv))
   phi_star_mat <- phi_hat_mat
