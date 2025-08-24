@@ -2,7 +2,8 @@
 % Please edit documentation in R/ComBat_met.r
 \name{ComBat_met}
 \alias{ComBat_met}
-\title{Adjust for batch effects using a beta regression framework in DNA methylation data}
+\title{Adjust for batch effects using a beta regression framework in DNA 
+methylation data}
 \usage{
 ComBat_met(
   vmat,
@@ -22,36 +23,46 @@ ComBat_met(
 \arguments{
 \item{vmat}{matrix of beta-values or M-values}
 
-\item{dtype}{data type: b-value or M-value; note that the input and output have the same data type.}
+\item{dtype}{data type: b-value or M-value; note that the input and output 
+have the same data type.}
 
 \item{batch}{vector for batch}
 
 \item{group}{optional vector for biological condition of interest}
 
-\item{covar_mod}{optional model matrix representing covariates to be included in the model}
+\item{covar_mod}{optional model matrix representing covariates to be 
+included in the model}
 
-\item{full_mod}{Boolean variable indicating whether to include biological condition of interest in the model}
+\item{full_mod}{Boolean variable indicating whether to include biological 
+condition of interest in the model}
 
-\item{shrink}{Boolean variable indicating whether to apply EB-shrinkage on parameter estimation}
+\item{shrink}{Boolean variable indicating whether to apply EB-shrinkage on 
+parameter estimation}
 
-\item{mean.only}{Boolean variable indicating whether to apply EB-shrinkage on the estimation of precision effects}
+\item{mean.only}{Boolean variable indicating whether to apply EB-shrinkage 
+on the estimation of precision effects}
 
-\item{feature.subset.n}{number of features to use in non-parametric EB estimation, only useful when shrink equals TRUE}
+\item{feature.subset.n}{number of features to use in non-parametric EB 
+estimation, only useful when shrink equals TRUE}
 
-\item{pseudo_beta}{pseudo beta-values to be used for replacing extreme 0 and 1 beta-values. 
+\item{pseudo_beta}{pseudo beta-values to be used for replacing extreme 0 
+and 1 beta-values.
 Value needs to be between 0 and 0.5. Only active when dtype equals b-value.}
 
-\item{ref.batch}{NULL by default. If given, that batch will be selected as a reference for batch correction.}
+\item{ref.batch}{NULL by default. If given, that batch will be selected as 
+a reference for batch correction.}
 
-\item{ncores}{number of cores to be used for parallel computing. By default, ncores is set to one.}
+\item{ncores}{number of cores to be used for parallel computing. 
+By default, ncores is set to one.}
 }
 \value{
-\code{ComBat_met} returns a feature x sample matrix with the same data type as input, adjusted for batch effects.
+\code{ComBat_met} returns a feature x sample matrix with the same 
+data type as input, adjusted for batch effects.
 }
 \description{
 ComBat-met fits beta regression models to the beta-values or M-values, 
-calculates batch-free distributions, and maps the quantiles of the estimated distributions 
-to their batch-free counterparts.
+calculates batch-free distributions, and maps the quantiles of the 
+estimated distributions to their batch-free counterparts.
 }
 \examples{
 # Generate a random beta-value matrix
@@ -60,9 +71,11 @@ batch <- c(rep(1, 4), rep(2, 4))
 group <- rep(c(0, 1), 4)
 
 # Adjust for batch effects including biological conditions
-adj_bv_mat <- ComBat_met(bv_mat, dtype = "b-value", batch = batch, group = group, full_mod = TRUE)
+adj_bv_mat <- ComBat_met(bv_mat, dtype = "b-value", batch = batch, 
+group = group, full_mod = TRUE)
 # Adjust for batch effects without including biological conditions
-adj_bv_mat <- ComBat_met(bv_mat, dtype = "b-value", batch = batch, group = group, full_mod = FALSE)
+adj_bv_mat <- ComBat_met(bv_mat, dtype = "b-value", batch = batch, 
+group = group, full_mod = FALSE)
 
 # Generate a random M-value matrix
 mv_mat <- matrix(rnorm(n = 400, mean = 0, sd = 1), nrow = 50, ncol = 8)
@@ -70,15 +83,18 @@ batch <- c(rep(1, 4), rep(2, 4))
 group <- rep(c(0, 1), 4)
 
 # Adjust for batch effects including biological conditions
-adj_mv_mat <- ComBat_met(mv_mat, dtype = "M-value", batch = batch, group = group, full_mod = TRUE)
+adj_mv_mat <- ComBat_met(mv_mat, dtype = "M-value", batch = batch, 
+group = group, full_mod = TRUE)
 # Adjust for batch effects without including biological conditions
-adj_mv_mat <- ComBat_met(mv_mat, dtype = "M-value", batch = batch, group = group, full_mod = FALSE)
+adj_mv_mat <- ComBat_met(mv_mat, dtype = "M-value", batch = batch, 
+group = group, full_mod = FALSE)
 
-# Adjust for batch effects including biological conditions (multiple threads)
-adj_mv_mat <- ComBat_met(mv_mat, dtype = "M-value", batch = batch, group = group, full_mod = TRUE, 
-ncores = 2)
+# Adjust for batch effects including biological conditions (multi-threads)
+adj_mv_mat <- ComBat_met(mv_mat, dtype = "M-value", batch = batch, 
+group = group, full_mod = TRUE, ncores = 2)
 
 }
 \references{
-Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
+Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. 
+NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
 }

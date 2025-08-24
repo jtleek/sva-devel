@@ -2,7 +2,8 @@
 % Please edit documentation in R/Mvalue_ComBat.R
 \name{Mvalue_ComBat}
 \alias{Mvalue_ComBat}
-\title{Adjust for batch effects in DNA methylation data by converting beta-values to M-values followed by ComBat}
+\title{Adjust for batch effects in DNA methylation data by converting beta-values 
+to M-values followed by ComBat}
 \usage{
 Mvalue_ComBat(
   vmat,
@@ -19,31 +20,39 @@ Mvalue_ComBat(
 \arguments{
 \item{vmat}{matrix of beta-values or M-values}
 
-\item{dtype}{data type: b-value or M-value; note that the input and output have the same data type.}
+\item{dtype}{data type: b-value or M-value; note that the input and output 
+have the same data type.}
 
 \item{batch}{vector for batch}
 
 \item{group}{optional vector for biological condition of interest}
 
-\item{covar_mod}{optional model matrix representing covariates to be included in the model}
+\item{covar_mod}{optional model matrix representing covariates to be 
+included in the model}
 
-\item{full_mod}{Boolean variable indicating whether to include biological condition of interest in the model}
+\item{full_mod}{Boolean variable indicating whether to include biological 
+condition of interest in the model}
 
-\item{mean.only}{Boolean variable indicating whether to apply EB-shrinkage on the estimation of precision effects}
+\item{mean.only}{Boolean variable indicating whether to apply EB-shrinkage 
+on the estimation of precision effects}
 
-\item{pseudo_beta}{pseudo beta-values to be used for replacing extreme 0 and 1 beta-values. 
+\item{pseudo_beta}{pseudo beta-values to be used for replacing extreme 0 
+and 1 beta-values.
 Value needs to be between 0 and 0.5. Only active when dtype equals b-value.}
 
-\item{ref.batch}{NULL by default. If given, that batch will be selected as a reference for batch correction.}
+\item{ref.batch}{NULL by default. If given, that batch will be selected as 
+a reference for batch correction.}
 }
 \value{
-\code{Mvalue_ComBat} returns a feature x sample matrix with the same data type as input, adjusted for batch effects.
+\code{Mvalue_ComBat} returns a feature x sample matrix with the 
+same data type as input, adjusted for batch effects.
 }
 \description{
-Mvalue_ComBat converts beta-values to M-values through logit-transformation, 
-adjusts M-values for batch effects using ComBat, and converts the adjusted M-values back to 
-adjusted beta-values through reverse logit-transformation.
-Forward and reverse logit-transformation are omitted if M-values are provided.
+Mvalue_ComBat converts beta-values to M-values through 
+logit-transformation, adjusts M-values for batch effects using ComBat, and 
+converts the adjusted M-values back to adjusted beta-values through reverse 
+logit-transformation. Forward and reverse logit-transformation are omitted 
+if M-values are provided.
 }
 \examples{
 # Generate a random beta-value matrix
@@ -72,5 +81,6 @@ group = group, full_mod = FALSE)
 
 }
 \references{
-Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
+Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. 
+NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
 }
