@@ -647,12 +647,10 @@ report_estimation_issues <- function(
         n_zero_modvar, n_zero_modvar_batch, n_moderr, mean.only.vec) {
     message(sprintf(
         "Found %s features with zero model variance; these features won't be 
-        adjusted for batch effects.",
-        n_zero_modvar))
-    message(sprintf(
-        "Errors encountered in %s features with model fitting; these features 
+        adjusted for batch effects. 
+        Errors encountered in %s features with model fitting; these features 
         won't be adjusted for batch effects.",
-        n_moderr))
+        n_zero_modvar, n_moderr))
     if (!all(mean.only.vec)) {
         message(sprintf(
             "Found %s features with zero model variance within at least one 
