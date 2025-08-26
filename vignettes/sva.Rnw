@@ -210,10 +210,17 @@ covar_mat <- cbind(cov1, cov2)
 adjusted_counts <- ComBat_seq(count_matrix, batch=batch, 
                               group=NULL, covar_mod=covar_mat)
 @
-  
+
 
 \section{\Rfunction{ComBat\_met} for batch adjustment on DNA methylation data}
-ComBat-met is a ComBat-derived batch adjustment method designed for DNA methylation data. DNA methylation data consist of methylation percentages, representing the proportion of methylated alleles at specific genomic loci. ComBat-met fits beta regression models to the data, calculates batch-free distributions, and maps the quantiles of the estimated distributions to their batch-free counterparts. The correction procedure preserves the constrained [0, 1] interval of methylation percentages. Like ComBat and ComBat-seq, ComBat-met requires batch information to be explicitly provided.
+ComBat-met is a ComBat-derived batch adjustment method designed for DNA 
+methylation data. DNA methylation data consist of methylation percentages, 
+representing the proportion of methylated alleles at specific genomic loci. 
+ComBat-met fits beta regression models to the data, calculates batch-free 
+distributions, and maps the quantiles of the estimated distributions to their 
+batch-free counterparts. The correction procedure preserves the 
+constrained [0, 1] interval of methylation percentages. Like ComBat and 
+ComBat-seq, ComBat-met requires batch information to be explicitly provided.
 
 <<input>>=
 bv_mat <- matrix(runif(n = 400, min = 0, max = 1), nrow = 50, ncol = 8)
@@ -221,22 +228,29 @@ batch <- c(rep(1, 4), rep(2, 4))
 group <- rep(c(0, 1), 4)
 @
 
-The \Rfunction{ComBat\_met} function takes a beta-value or M-value matrix, a batch vector, and an optional group vector as input.
+The \Rfunction{ComBat\_met} function takes a beta-value or M-value matrix, 
+a batch vector, and an optional group vector as input.
 
 <<input>>=
 adj_bv_mat <- ComBat_met(bv_mat, batch = batch, group = group, full_mod = TRUE)
 @
 
-For large-scale projects, it is useful to adjust batch effects relative to a reference batch. \Rfunction{ComBat\_met} provides this capability through the \texttt{ref.batch} parameter.
+For large-scale projects, it is useful to adjust batch effects relative to a 
+reference batch. \Rfunction{ComBat\_met} provides this capability through 
+the \texttt{ref.batch} parameter.
 
 <<input>>=
-adj_bv_mat <- ComBat_met(bv_mat, batch = batch, group = group, full_mod = TRUE, ref.batch = 1)
+adj_bv_mat <- ComBat_met(
+    bv_mat, batch = batch, group = group, full_mod = TRUE, ref.batch = 1)
 @
 
-Real-world methylation datasets tend to be high-dimensional. To speed up the computation, \Rfunction{ComBat\_met} provides an option to parallelize the batch correction process.
+Real-world methylation datasets tend to be high-dimensional. To speed up the 
+computation, \Rfunction{ComBat\_met} provides an option to parallelize the 
+batch correction process.
 
 <<input>>=
-adj_bv_mat <- ComBat_met(bv_mat, batch = batch, group = group, full_mod = TRUE, ncores = 2)
+adj_bv_mat <- ComBat_met(
+    bv_mat, batch = batch, group = group, full_mod = TRUE, ncores = 2)
 @
 
 When using \Rfunction{ComBat\_met}, please cite \cite{wang2025}.
@@ -413,7 +427,9 @@ For psva please cite:
 For combat-met please cite:
 
 \begin{itemize}
-\item Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
+\item Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation 
+data. NAR Genomics and Bioinformatics, 7 (2), lqaf062. 
+doi: 10.1093/nargab/lqaf062
 \end{itemize}
 
 \bibliography{sva} 
