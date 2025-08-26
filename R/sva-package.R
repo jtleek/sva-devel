@@ -5,8 +5,9 @@
 #' the \code{\link{svaseq}} function can be used to estimate artifacts from count-based
 #' RNA-sequencing (and other sequencing) data. The \code{\link{ComBat}} function can be
 #' used to remove known batch effecs from microarray data. The \code{\link{fsva}} function
-#' can be used to remove batch effects for prediction problems. The \code{\link{ComBat_met}}
-#' function can be used to remove known batch effects from DNA methylation data.
+#' can be used to remove batch effects for prediction problems. 
+#' The \code{\link{ComBat_met}} function can be used to remove known batch 
+#' effects from DNA methylation data.
 #' 
 #' 
 #' A vignette is available by typing \code{browseVignettes("sva")} in the R prompt.
@@ -18,7 +19,9 @@
 #' @references For svaseq: Leek JT (2014) svaseq: removing batch and other artifacts from count-based sequencing data. bioRxiv doi: TBD
 #' @references For fsva: Parker HS, Bravo HC, Leek JT (2013) Removing batch effects for prediction problems with frozen surrogate variable analysis arXiv:1301.3947
 #' @references For psva: Parker HS, Leek JT, Favorov AV, Considine M, Xia X, Chavan S, Chung CH, Fertig EJ (2014) Preserving biological heterogeneity with a permuted surrogate variable analysis for genomics batch correction Bioinformatics doi: 10.1093/bioinformatics/btu375
-#' @references For ComBat_met: Wang J (2025) ComBat-met: adjusting batch effects in DNA methylation data. NAR Genomics and Bioinformatics, 7 (2), lqaf062. doi: 10.1093/nargab/lqaf062
+#' @references For ComBat_met: Wang J (2025) ComBat-met: adjusting batch 
+#' effects in DNA methylation data. NAR Genomics and Bioinformatics, 7 (2), 
+#' lqaf062. doi: 10.1093/nargab/lqaf062
 #' 
 #' @docType package
 #' @author Jeffrey T. Leek, W. Evan Johnson, Hilary S. Parker, Andrew E. Jaffe, John D. Storey, Yuqing Zhang
