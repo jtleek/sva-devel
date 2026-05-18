@@ -138,7 +138,7 @@ The next step is to calculate the test statistics using the \Rfunction{eBayes} f
 
 <<input>>=
 eb = eBayes(fitContrasts)
-topTableF(eb, adjust="BH")
+topTable(eb, adjust.method="BH")
 @
 
 
